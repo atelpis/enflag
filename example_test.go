@@ -1,4 +1,4 @@
-package enflag
+package enflag_test
 
 import (
 	"flag"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/atelpis/enflag"
 )
 
 func Example() {
@@ -20,21 +22,21 @@ func Example() {
 
 	// Both env and flag are defined and provided,
 	// flag value will be used as it has higher priority.
-	Bind(&conf.DBHost, "DB_HOST", "db-host", "127.0.0.1", "db hostname")
+	enflag.Bind(&conf.DBHost, "DB_HOST", "db-host", "127.0.0.1", "db hostname")
 
 	// Both env and flag are defined, but neither is provided.
 	// The value of DBPort will default to 5432.
-	Bind(&conf.DBPort, "DB_PORT", "db-port", 5432, "db port")
+	enflag.Bind(&conf.DBPort, "DB_PORT", "db-port", 5432, "db port")
 
 	// Example of parsing a non-primitive type.
-	Bind(&conf.BaseURL, "BASE_URL", "base-url", nil, "website base url")
+	enflag.Bind(&conf.BaseURL, "BASE_URL", "base-url", nil, "website base url")
 
 	// Both env and flag sources are optional. Skip the flag definition,
 	// and retrieve this value only from the environment.
-	Bind(&conf.Env, "ENV", "", "local", "")
+	enflag.Bind(&conf.Env, "ENV", "", "local", "")
 
 	// Custom time parser
-	BindFunc(
+	enflag.BindFunc(
 		&conf.ImportantTime,
 		"ITIME",
 		"itime",
@@ -57,7 +59,7 @@ func Example() {
 		flag.CommandLine.Set("base-url", "https://my-website.com")
 	}
 
-	Parse()
+	enflag.Parse()
 
 	RunMyService(&conf)
 }
