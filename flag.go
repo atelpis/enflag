@@ -46,13 +46,12 @@ type Bindable interface {
 // Bind accepts values of Bindable types. For other types, use BindFunc.
 func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	*p = value
-	envVal := os.Getenv(env)
 
 	switch ptr := any(p).(type) {
 	case *string:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (string, error) {
@@ -64,7 +63,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *int:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			strconv.Atoi,
@@ -74,7 +73,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *int64:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (int64, error) {
@@ -86,7 +85,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *uint:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (uint, error) {
@@ -102,7 +101,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *uint64:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (uint64, error) {
@@ -114,7 +113,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *float64:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (float64, error) {
@@ -126,7 +125,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *bool:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			strconv.ParseBool,
@@ -136,7 +135,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *time.Duration:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			time.ParseDuration,
@@ -146,7 +145,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *url.URL:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (url.URL, error) {
@@ -162,7 +161,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case **url.URL:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (*url.URL, error) { return url.Parse(s) },
@@ -172,7 +171,7 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 	case *net.IP:
 		handle(
 			ptr,
-			envVal,
+			env,
 			flag,
 			usage,
 			func(s string) (net.IP, error) {
@@ -191,11 +190,10 @@ func Bind[T Bindable](p *T, env string, flag string, value T, usage string) {
 // which is used to parse both the environment variable and the flag value.
 func BindFunc[T any](p *T, env string, flag string, value T, usage string, parser func(s string) (T, error)) {
 	*p = value
-	envVal := os.Getenv(env)
 
 	handle(
 		p,
-		envVal,
+		env,
 		flag,
 		usage,
 		parser,
@@ -212,16 +210,21 @@ func Parse() {
 
 func handle[T any](
 	p *T,
-	val string,
+	env string,
 	flag string,
 	usage string,
 	parser func(s string) (T, error),
 	stdFlagFunc func(*T, string, T, string),
 ) {
-	if val != "" {
-		v, err := parser(val)
+	if envVal := os.Getenv(env); envVal != "" {
+		v, err := parser(envVal)
 		if err != nil {
-			fmt.Fprintf(flagPkg.CommandLine.Output(), "Unable to parse value %s:\n", val)
+			fmt.Fprintf(
+				flagPkg.CommandLine.Output(),
+				"Unable to parse env-variable %s as type %T\n",
+				env,
+				*p,
+			)
 
 			// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
 			os.Exit(2)
