@@ -227,7 +227,9 @@ func handle[T any](
 			)
 
 			// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
-			os.Exit(2)
+			if !isTestEnv {
+				os.Exit(2)
+			}
 		}
 		*p = v
 	}
@@ -248,3 +250,5 @@ func handle[T any](
 		}
 	}
 }
+
+var isTestEnv bool
