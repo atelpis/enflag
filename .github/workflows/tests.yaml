@@ -7,33 +7,22 @@ on:
   pull_request:
 
 jobs:
-  gotest:
+  test-and-coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.18"
+          cache: false
 
       - name: Build
         run: go build -v ./...
 
-      - name: Test
-        run: go test -v ./...
-
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.18"
-
-      - name: Run coverage
-        run: go test -coverprofile=coverage.txt -covermode=atomic $(go list ./... )
+      - name: Test and Coverage
+        run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
