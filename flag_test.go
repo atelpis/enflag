@@ -5,11 +5,14 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
 
 func TestSetEnv(t *testing.T) {
+	isTestEnv = true
+
 	type tc struct {
 		name string
 
@@ -233,6 +236,52 @@ func TestSetEnv(t *testing.T) {
 				})
 
 				return toSlice(func() { checkVal(t, "aaa-bbb", target) })
+			},
+		},
+
+		// invalid data
+		{
+			name: "Uint bad env",
+			envs: []string{"PORT", "4-4-3"},
+			f: func(t *testing.T) []func() {
+				var target uint
+				Bind(&target, "PORT", "port", 80, "uint value")
+
+				return toSlice(func() { checkVal(t, uint(0), target) })
+			},
+		},
+		{
+			name: "URL bad env",
+			envs: []string{"BAD_ADMIN_URL", "123"},
+
+			f: func(t *testing.T) []func() {
+				var targetAdmin url.URL
+				def := url.URL{}
+				Bind(&targetAdmin, "BAD_ADMIN_URL", "", def, "admin panel base url")
+
+				return toSlice(func() { checkVal(t, "", targetAdmin.Host) })
+			},
+		}, {
+			name: "IP bad env",
+			envs: []string{"DNS_IP", "aaa-bbb"},
+
+			f: func(t *testing.T) []func() {
+				var target net.IP
+				Bind(&target, "DNS_IP", "", net.IP{}, "admin panel base url")
+
+				return toSlice(func() { checkVal(t, "<nil>", target.String()) })
+			},
+		},
+		{
+			name:  "Custom bad flag",
+			flags: []string{"my-format", "aaa"},
+			f: func(t *testing.T) []func() {
+				var target int
+				BindFunc(&target, "MY_FORMAT", "my-format", 10, "int value", func(s string) (int, error) {
+					return strconv.Atoi(s)
+				})
+
+				return toSlice(func() { checkVal(t, 0, target) })
 			},
 		},
 	}
