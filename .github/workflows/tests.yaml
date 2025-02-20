@@ -1,0 +1,31 @@
+name: Tests
+
+on:
+  push:
+    branches: ["main"]
+    tags-ignore: ["**"]
+  pull_request:
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.18"
+          cache: false
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test and Coverage
+        run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: atelpis/enflag
