@@ -25,10 +25,10 @@ func TestSetEnv(t *testing.T) {
 			// no values provided, use default
 			envs: nil, flags: nil,
 			f: func(t *testing.T) []func() {
-				var target int
-				Bind(&target, "PORT", "port", 80, "int value")
+				var target string
+				Bind(&target, "HOST", "host", "localhost", "string value")
 
-				return toSlice(func() { checkVal(t, int(80), target) })
+				return toSlice(func() { checkVal(t, "localhost", target) })
 			},
 		},
 		{
