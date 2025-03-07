@@ -30,11 +30,17 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
+// TODO: rename to Predefined or Builtin
 type Bindable interface {
-	string | int | int64 | uint | uint64 | float64 | bool | time.Duration | url.URL | *url.URL | net.IP
+	[]byte | // TODO:
+		string | []string | bool | []bool |
+		int | []int | int64 | []int64 | uint | []uint | uint64 | []uint64 | float64 | []float64 |
+		time.Time | *time.Time | []time.Time | time.Duration | []time.Duration | // TODO: support time parsing
+		url.URL | []url.URL | *url.URL | []*url.URL | net.IP | []net.IP
 }
 
 // Bind assigns a value to the pointer p, prioritizing sources in the following order:
@@ -201,6 +207,161 @@ func BindFunc[T any](p *T, env string, flag string, value T, usage string, parse
 	)
 }
 
+func BindSlice[T Bindable](p *[]T, env string, flag string, value []T, usage string, separator string) {
+	*p = value
+
+	switch ptr := any(p).(type) {
+	case *[]string:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (string, error) {
+				return s, nil
+			},
+			separator,
+		)
+
+	case *[]int:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			strconv.Atoi,
+			separator,
+		)
+
+	case *[]int64:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (int64, error) {
+				return strconv.ParseInt(s, 10, 64)
+			},
+			separator,
+		)
+
+	case *[]uint:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (uint, error) {
+				v, err := strconv.ParseUint(s, 10, 64)
+				if err != nil {
+					return 0, err
+				}
+				return uint(v), nil
+			},
+			separator,
+		)
+
+	case *[]uint64:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (uint64, error) {
+				return strconv.ParseUint(s, 10, 64)
+			},
+			separator,
+		)
+
+	case *[]float64:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (float64, error) {
+				return strconv.ParseFloat(s, 10)
+			},
+			separator,
+		)
+
+	case *[]bool:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			strconv.ParseBool,
+			separator,
+		)
+
+	case *[]time.Duration:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			time.ParseDuration,
+			separator,
+		)
+
+	case *[]url.URL:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (url.URL, error) {
+				u, err := url.Parse(s)
+				if err != nil {
+					return url.URL{}, err
+				}
+				return *u, nil
+			},
+			separator,
+		)
+
+	case *[]*url.URL:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (*url.URL, error) { return url.Parse(s) },
+			separator,
+		)
+
+	case *[]net.IP:
+		handleSlice(
+			ptr,
+			env,
+			flag,
+			usage,
+			func(s string) (net.IP, error) {
+				ip := net.ParseIP(s)
+				if ip == nil {
+					return nil, errors.New("invalid IP address")
+				}
+				return ip, nil
+			},
+			separator,
+		)
+	}
+}
+
+func BindSliceFunc[T any](p *[]T, env string, flag string, value []T, usage string, separator string, parser func(s string) (T, error)) {
+	*p = value
+
+	handleSlice(
+		p,
+		env,
+		flag,
+		usage,
+		parser,
+		separator,
+	)
+}
+
 // Parse calls the standard library's `flag` package's `Parse()` function.
 // Like the standard library's `flag` package, Parse() must be called
 // after all flags have been defined.
@@ -248,6 +409,50 @@ func handle[T any](
 				return nil
 			})
 		}
+	}
+}
+
+func handleSlice[T any](
+	p *[]T,
+	env string,
+	flag string,
+	usage string,
+	parser func(s string) (T, error),
+	separator string,
+) {
+	if envVal := os.Getenv(env); envVal != "" {
+		for _, v := range strings.Split(envVal, separator) {
+			parsed, err := parser(v)
+			if err != nil {
+				fmt.Fprintf(
+					flagPkg.CommandLine.Output(),
+					"Unable to parse env-variable %s as type %T\n",
+					env,
+					*p,
+				)
+
+				// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
+				if !isTestEnv {
+					os.Exit(2)
+				}
+			}
+			*p = append(*p, parsed)
+		}
+	}
+
+	if flag == "" {
+		flagPkg.Func(flag, usage, func(s string) error {
+			for _, v := range strings.Split(s, separator) {
+				parsed, err := parser(v)
+				if err != nil {
+					return err
+				}
+
+				*p = append(*p, parsed)
+			}
+
+			return nil
+		})
 	}
 }
 

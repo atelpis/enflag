@@ -29,7 +29,8 @@ func TestSetEnv(t *testing.T) {
 			envs: nil, flags: nil,
 			f: func(t *testing.T) []func() {
 				var target string
-				Bind(&target, "HOST", "host", "localhost", "string value")
+				Var(&target).WithDefault("localhost").Bind("HOST", "host")
+				// Bind(&target, "HOST", "host", "localhost", "string value")
 
 				return toSlice(func() { checkVal(t, "localhost", target) })
 			},
@@ -40,7 +41,8 @@ func TestSetEnv(t *testing.T) {
 			flags: nil,
 			f: func(t *testing.T) []func() {
 				var target int
-				Bind(&target, "PORT", "port", 80, "int value")
+				// Bind(&target, "PORT", "port", 80, "int value")
+				Var(&target).WithDefault(80).Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, int(443), target) })
 			},
@@ -51,7 +53,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"port", "443"},
 			f: func(t *testing.T) []func() {
 				var target int
-				Bind(&target, "PORT", "port", 80, "int value")
+				// Bind(&target, "PORT", "port", 80, "int value")
+				Var(&target).WithDefault(80).Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, int(443), target) })
 			},
@@ -62,7 +65,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"port", "443"},
 			f: func(t *testing.T) []func() {
 				var target int64
-				Bind(&target, "PORT", "port", 80, "int64 value")
+				// Bind(&target, "PORT", "port", 80, "int64 value")
+				Var(&target).WithDefault(80).WithFlagUsage("int64 value").Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, int64(443), target) })
 			},
@@ -73,7 +77,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"port", "443"},
 			f: func(t *testing.T) []func() {
 				var target uint
-				Bind(&target, "PORT", "port", 80, "uint value")
+				// Bind(&target, "PORT", "port", 80, "uint value")
+				Var(&target).WithDefault(80).WithFlagUsage("uint value").Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, uint(443), target) })
 			},
@@ -84,7 +89,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"port", "443"},
 			f: func(t *testing.T) []func() {
 				var target uint64
-				Bind(&target, "PORT", "port", 80, "uint64 value")
+				// Bind(&target, "PORT", "port", 80, "uint64 value")
+				Var(&target).WithDefault(80).WithFlagUsage("uint64 value").Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, uint64(443), target) })
 			},
@@ -95,7 +101,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"llm-temp", "0.45"},
 			f: func(t *testing.T) []func() {
 				var target float64
-				Bind(&target, "LLM_TEMP", "llm-temp", 1, "llm requests temperature")
+				// Bind(&target, "LLM_TEMP", "llm-temp", 1, "llm requests temperature")
+				Var(&target).WithDefault(1).WithFlagUsage("llm requests temperature").Bind("LLM_TEMP", "llm-temp")
 
 				return toSlice(func() { checkVal(t, float64(0.45), target) })
 			},
@@ -110,8 +117,12 @@ func TestSetEnv(t *testing.T) {
 			f: func(t *testing.T) []func() {
 				var targetNumeric bool
 				var targetStr bool
-				Bind(&targetNumeric, "DEBUG", "", true, "enable debug")
-				Bind(&targetStr, "REQUIRE_2FA", "", true, "require 2fa on sing-up")
+
+				// Bind(&targetNumeric, "DEBUG", "", true, "enable debug")
+				Var(&targetNumeric).WithDefault(true).BindEnv("DEBUG")
+
+				// Bind(&targetStr, "REQUIRE_2FA", "", true, "require 2fa on sing-up")
+				Var(&targetStr).WithDefault(true).BindEnv("REQUIRE_2FA")
 
 				return []func(){
 					func() { checkVal(t, false, targetNumeric) },
@@ -130,8 +141,11 @@ func TestSetEnv(t *testing.T) {
 				var target url.URL
 				var targetAdmin url.URL
 				def := url.URL{Scheme: "http", Host: "localhost", Path: "/sign-in"}
-				Bind(&target, "", "base-url", def, "application base url")
-				Bind(&targetAdmin, "BASE_ADMIN_URL", "", def, "admin panel base url")
+				// Bind(&target, "", "base-url", def, "application base url")
+				Var(&target).WithDefault(def).WithFlagUsage("application base url").BindFlag("base-url")
+
+				// Bind(&targetAdmin, "BASE_ADMIN_URL", "", def, "admin panel base url")
+				Var(&targetAdmin).WithDefault(def).BindEnv("BASE_ADMIN_URL")
 
 				return []func(){
 					func() { checkVal(t, "https", target.Scheme) },
@@ -155,9 +169,15 @@ func TestSetEnv(t *testing.T) {
 				var targetAdmin *url.URL
 				var targetNil *url.URL
 				def := &url.URL{Scheme: "http", Host: "localhost", Path: "/sign-in"}
-				Bind(&target, "", "base-url", def, "application base url")
-				Bind(&targetAdmin, "BASE_ADMIN_URL", "", def, "admin panel base url")
-				Bind(&targetNil, "PROMO_URL", "", nil, "promo website (optional)")
+
+				// Bind(&target, "", "base-url", def, "application base url")
+				Var(&target).WithDefault(def).BindFlag("base-url")
+
+				// Bind(&targetAdmin, "BASE_ADMIN_URL", "", def, "admin panel base url")
+				Var(&targetAdmin).WithDefault(def).BindEnv("BASE_ADMIN_URL")
+
+				// Bind(&targetNil, "PROMO_URL", "", nil, "promo website (optional)")
+				Var(&targetNil).BindEnv("PROMO_URL")
 
 				return []func(){
 					func() { checkVal(t, "https", target.Scheme) },
@@ -182,8 +202,12 @@ func TestSetEnv(t *testing.T) {
 				var target net.IP
 				var targetBalancer net.IP
 				def := net.IP{127, 0, 0, 1}
-				Bind(&target, "DNS_IP", "", def, "ip address of the dns server")
-				Bind(&targetBalancer, "", "balancer-ip", def, "ip address of the balancer")
+
+				// Bind(&target, "DNS_IP", "", def, "ip address of the dns server")
+				Var(&target).WithDefault(def).BindEnv("DNS_IP")
+
+				// Bind(&targetBalancer, "", "balancer-ip", def, "ip address of the balancer")
+				Var(&targetBalancer).WithFlagUsage("ip address of the balancer").WithDefault(def).BindFlag("balancer-ip")
 
 				return []func(){
 					func() { checkVal(t, "127.0.0.8", target.String()) },
@@ -198,7 +222,8 @@ func TestSetEnv(t *testing.T) {
 			flags: nil,
 			f: func(t *testing.T) []func() {
 				var target time.Duration
-				Bind(&target, "TTL", "ttl", 30*time.Second, "int value")
+				// Bind(&target, "TTL", "ttl", 30*time.Second, "int value")
+				Var(&target).WithDefault(30*time.Second).Bind("TTL", "ttl")
 
 				return toSlice(func() { checkVal(t, 5*time.Minute, target) })
 			},
@@ -209,7 +234,8 @@ func TestSetEnv(t *testing.T) {
 			flags: nil,
 			f: func(t *testing.T) []func() {
 				var target int
-				Bind(&target, "ALERT_THRESHOLD", "", 5, "max allowed number")
+				// Bind(&target, "ALERT_THRESHOLD", "", 5, "max allowed number")
+				Var(&target).WithDefault(5).BindEnv("ALERT_THRESHOLD")
 
 				return toSlice(func() { checkVal(t, int(0), target) })
 			},
@@ -220,7 +246,8 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"alert-thr", "0"},
 			f: func(t *testing.T) []func() {
 				var intVar int
-				Bind(&intVar, "ALERT_THRESHOLD", "alert-thr", 5, "max allowed number")
+				// Bind(&intVar, "ALERT_THRESHOLD", "alert-thr", 5, "max allowed number")
+				Var(&intVar).WithDefault(5).Bind("ALERT_THRESHOLD", "alert-thr")
 
 				return toSlice(func() { checkVal(t, int(0), intVar) })
 			},
@@ -231,11 +258,39 @@ func TestSetEnv(t *testing.T) {
 			flags: nil,
 			f: func(t *testing.T) []func() {
 				var target string
-				BindFunc(&target, "MY_FORMAT", "my-format", "a", "int value", func(s string) (string, error) {
+				// BindFunc(&target, "MY_FORMAT", "my-format", "a", "int value", func(s string) (string, error) {
+				// 	return s + "-bbb", nil
+				// })
+				parser := func(s string) (string, error) {
 					return s + "-bbb", nil
-				})
+				}
+				VarFunc(&target, parser).WithDefault("a").Bind("MY_FORMAT", "my-format")
 
 				return toSlice(func() { checkVal(t, "aaa-bbb", target) })
+			},
+		},
+		{
+			name:  "Slice",
+			envs:  []string{"NUMBERS", "10,12"},
+			flags: []string{"numbers", "10,12"},
+			f: func(t *testing.T) []func() {
+				var intVars []int
+				BindSlice(&intVars, "NUMBERS", "numbers", []int{}, "some numbers", ",")
+
+				return toSlice(func() { checkSlice(t, []int{10, 12}, intVars) })
+			},
+		},
+		{
+			name: "Slice func",
+			envs: []string{"MY_FORMAT_SL", "aa bb"},
+			// flags: []string{"my-format-sl", "cc"},
+			f: func(t *testing.T) []func() {
+				var target []string
+				BindSliceFunc(&target, "MY_FORMAT_SL", "my-format-sl", nil, "helper", " ", func(s string) (string, error) {
+					return s + "-1", nil
+				})
+
+				return toSlice(func() { checkSlice(t, []string{"aa-1", "bb-1"}, target) })
 			},
 		},
 
@@ -245,7 +300,8 @@ func TestSetEnv(t *testing.T) {
 			envs: []string{"PORT", "4-4-3"},
 			f: func(t *testing.T) []func() {
 				var target uint
-				Bind(&target, "PORT", "port", 80, "uint value")
+				// Bind(&target, "PORT", "port", 80, "uint value")
+				Var(&target).WithDefault(80).Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, uint(0), target) })
 			},
@@ -257,7 +313,8 @@ func TestSetEnv(t *testing.T) {
 			f: func(t *testing.T) []func() {
 				var targetAdmin url.URL
 				def := url.URL{}
-				Bind(&targetAdmin, "BAD_ADMIN_URL", "", def, "admin panel base url")
+				// Bind(&targetAdmin, "BAD_ADMIN_URL", "", def, "admin panel base url")
+				Var(&targetAdmin).WithDefault(def).BindEnv("BAD_ADMIN_URL")
 
 				return toSlice(func() { checkVal(t, "", targetAdmin.Host) })
 			},
@@ -267,7 +324,8 @@ func TestSetEnv(t *testing.T) {
 
 			f: func(t *testing.T) []func() {
 				var target net.IP
-				Bind(&target, "DNS_IP", "", net.IP{}, "admin panel base url")
+				// Bind(&target, "DNS_IP", "", net.IP{}, "admin panel base url")
+				Var(&target).WithDefault(net.IP{}).BindEnv("DNS_IP")
 
 				return toSlice(func() { checkVal(t, "<nil>", target.String()) })
 			},
@@ -277,9 +335,13 @@ func TestSetEnv(t *testing.T) {
 			flags: []string{"my-format", "aaa"},
 			f: func(t *testing.T) []func() {
 				var target int
-				BindFunc(&target, "MY_FORMAT", "my-format", 10, "int value", func(s string) (int, error) {
+				// BindFunc(&target, "MY_FORMAT", "my-format", 10, "int value", func(s string) (int, error) {
+				// 	return strconv.Atoi(s)
+				// })
+				parser := func(s string) (int, error) {
 					return strconv.Atoi(s)
-				})
+				}
+				VarFunc(&target, parser).WithDefault(10).Bind("MY_FORMAT", "my-format")
 
 				return toSlice(func() { checkVal(t, 0, target) })
 			},
@@ -312,6 +374,22 @@ func checkVal[A comparable](t *testing.T, want A, got A) {
 
 	if want != got {
 		t.Errorf("want %v, got %v", want, got)
+	}
+}
+
+func checkSlice[A comparable](t *testing.T, want []A, got []A) {
+	t.Helper()
+
+	if len(want) != len(got) {
+		t.Errorf("expected %v, got %v", want, got)
+		return
+	}
+
+	for i := range want {
+		if want[i] != got[i] {
+			t.Errorf("want %v, got %v, mismatch at pos %d: %v != %v", want, got, i, want[i], got[i])
+			return
+		}
 	}
 }
 
