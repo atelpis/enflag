@@ -60,6 +60,17 @@ func TestSetEnv(t *testing.T) {
 			},
 		},
 		{
+			name:  "Int slice",
+			envs:  []string{"IDS", "1,3,4"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []int
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []int{1, 3, 4}, target) })
+			},
+		},
+		{
 			name:  "Int64",
 			envs:  []string{"PORT", "8888"},
 			flags: []string{"port", "443"},
