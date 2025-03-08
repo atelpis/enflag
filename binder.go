@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	flagPkg "flag"
+	"flag"
 	"fmt"
 	"net"
 	"net/url"
@@ -95,43 +95,43 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleVar(b.binding, ptr, b.decoder, nil)
 
 	case *string:
-		handleVar(b.binding, ptr, parsers.String, flagPkg.StringVar)
+		handleVar(b.binding, ptr, parsers.String, flag.StringVar)
 
 	case *[]string:
 		handleSlice(b.binding, ptr, parsers.String)
 
 	case *int:
-		handleVar(b.binding, ptr, strconv.Atoi, flagPkg.IntVar)
+		handleVar(b.binding, ptr, strconv.Atoi, flag.IntVar)
 
 	case *[]int:
 		handleSlice(b.binding, ptr, strconv.Atoi)
 
 	case *int64:
-		handleVar(b.binding, ptr, parsers.Inte64, flagPkg.Int64Var)
+		handleVar(b.binding, ptr, parsers.Inte64, flag.Int64Var)
 
 	case *[]int64:
 		handleSlice(b.binding, ptr, parsers.Inte64)
 
 	case *uint:
-		handleVar(b.binding, ptr, parsers.Uint, flagPkg.UintVar)
+		handleVar(b.binding, ptr, parsers.Uint, flag.UintVar)
 
 	case *[]uint:
 		handleSlice(b.binding, ptr, parsers.Uint)
 
 	case *uint64:
-		handleVar(b.binding, ptr, parsers.Uint64, flagPkg.Uint64Var)
+		handleVar(b.binding, ptr, parsers.Uint64, flag.Uint64Var)
 
 	case *[]uint64:
 		handleSlice(b.binding, ptr, parsers.Uint64)
 
 	case *float64:
-		handleVar(b.binding, ptr, parsers.Float64, flagPkg.Float64Var)
+		handleVar(b.binding, ptr, parsers.Float64, flag.Float64Var)
 
 	case *[]float64:
 		handleSlice(b.binding, ptr, parsers.Float64)
 
 	case *bool:
-		handleVar(b.binding, ptr, strconv.ParseBool, flagPkg.BoolVar)
+		handleVar(b.binding, ptr, strconv.ParseBool, flag.BoolVar)
 
 	case *[]bool:
 		handleSlice(b.binding, ptr, strconv.ParseBool)
@@ -146,7 +146,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleSlice(b.binding, ptr, parsers.Time(b.timeLayout))
 
 	case *time.Duration:
-		handleVar(b.binding, ptr, time.ParseDuration, flagPkg.DurationVar)
+		handleVar(b.binding, ptr, time.ParseDuration, flag.DurationVar)
 
 	case *[]time.Duration:
 		handleSlice(b.binding, ptr, time.ParseDuration)
@@ -240,7 +240,7 @@ func handleVar[T any](
 		v, err := parser(envVal)
 		if err != nil {
 			fmt.Fprintf(
-				flagPkg.CommandLine.Output(),
+				flag.CommandLine.Output(),
 				"Unable to parse env-variable %s as type %T\n",
 				b.envName,
 				*ptr,
@@ -258,7 +258,7 @@ func handleVar[T any](
 		if stdFlagFunc != nil {
 			stdFlagFunc(ptr, b.flagName, *ptr, b.flagUsage)
 		} else {
-			flagPkg.Func(b.flagName, b.flagUsage, func(s string) error {
+			flag.Func(b.flagName, b.flagUsage, func(s string) error {
 				parsed, err := parser(s)
 				if err != nil {
 					return err
@@ -281,7 +281,7 @@ func handleSlice[T any](
 			parsed, err := parser(v)
 			if err != nil {
 				fmt.Fprintf(
-					flagPkg.CommandLine.Output(),
+					flag.CommandLine.Output(),
 					"Unable to parse env-variable %s as type %T\n",
 					b.envName,
 					*ptr,
@@ -297,7 +297,7 @@ func handleSlice[T any](
 	}
 
 	if b.flagName != "" {
-		flagPkg.Func(b.flagName, b.flagUsage, func(s string) error {
+		flag.Func(b.flagName, b.flagUsage, func(s string) error {
 			for _, v := range strings.Split(s, b.sliceSep) {
 				parsed, err := parser(v)
 				if err != nil {
