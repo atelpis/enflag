@@ -243,7 +243,11 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]time.Duration:
-		// TODO:
+		handleSliceVar(
+			b.binding,
+			ptr,
+			time.ParseDuration,
+		)
 
 	case *url.URL:
 		handleVar(

@@ -338,13 +338,18 @@ func TestBind(t *testing.T) {
 		{
 			name:  "Duration",
 			envs:  []string{"TTL", "5m"},
-			flags: nil,
+			flags: []string{"ttls", "5s,1m,3m"},
 			f: func(t *testing.T) []func() {
 				var target time.Duration
+				var targetSlice []time.Duration
 
 				Var(&target).WithDefault(30*time.Second).Bind("TTL", "ttl")
+				Var(&targetSlice).BindFlag("ttls")
 
-				return toSlice(func() { checkVal(t, 5*time.Minute, target) })
+				return []func(){
+					func() { checkVal(t, 5*time.Minute, target) },
+					func() { checkSlice(t, []time.Duration{5 * time.Second, time.Minute, 3 * time.Minute}, targetSlice) },
+				}
 			},
 		},
 		{
