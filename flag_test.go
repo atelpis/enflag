@@ -57,6 +57,16 @@ func TestBind(t *testing.T) {
 			},
 		},
 		{
+			name: "String slice",
+			envs: []string{"LABELS", "inbox,sent"},
+			f: func(t *testing.T) []func() {
+				var target []string
+				Var(&target).BindEnv("LABELS")
+
+				return toSlice(func() { checkSlice(t, []string{"inbox", "sent"}, target) })
+			},
+		},
+		{
 			name:  "Base64 bytes",
 			envs:  []string{"SECRET", "AQID"},
 			flags: []string{"secret-hex", "010203"},
