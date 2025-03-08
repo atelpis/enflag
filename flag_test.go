@@ -371,8 +371,8 @@ func TestBind(t *testing.T) {
 
 				Var(&target3339).BindEnv("DATE_3339")
 				Var(&targetOpt).BindEnv("OPT_TIME")
-				Var(&targetStampMillis).WithTimeFormat(time.DateOnly).BindFlag("date")
-				Var(&targetRange).WithSliceSeparator(":").WithTimeFormat(time.DateOnly).BindFlag("date-range")
+				Var(&targetStampMillis).WithTimeLayout(time.DateOnly).BindFlag("date")
+				Var(&targetRange).WithSliceSeparator(":").WithTimeLayout(time.DateOnly).BindFlag("date-range")
 
 				return []func(){
 					func() { checkVal(t, expect, target3339) },

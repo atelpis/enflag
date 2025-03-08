@@ -34,7 +34,7 @@ func Var[T Builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
 	}
-	b.timeFormat = time.RFC3339
+	b.timeLayout = time.RFC3339
 	b.decoder = Base64DecodeFunc
 	b.sliceSep = ","
 
@@ -78,8 +78,8 @@ func (b *Binding[T]) WithDecoder(f func(string) ([]byte, error)) *Binding[T] {
 	return b
 }
 
-func (b *Binding[T]) WithTimeFormat(layout string) *Binding[T] {
-	b.timeFormat = layout
+func (b *Binding[T]) WithTimeLayout(layout string) *Binding[T] {
+	b.timeLayout = layout
 	return b
 }
 
@@ -134,13 +134,13 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleSlice(b.binding, ptr, strconv.ParseBool)
 
 	case *time.Time:
-		handleVar(b.binding, ptr, parsers.Time(b.timeFormat), nil)
+		handleVar(b.binding, ptr, parsers.Time(b.timeLayout), nil)
 
 	case **time.Time:
-		handleVar(b.binding, ptr, parsers.Ptr(parsers.Time(b.timeFormat)), nil)
+		handleVar(b.binding, ptr, parsers.Ptr(parsers.Time(b.timeLayout)), nil)
 
 	case *[]time.Time:
-		handleSlice(b.binding, ptr, parsers.Time(b.timeFormat))
+		handleSlice(b.binding, ptr, parsers.Time(b.timeLayout))
 
 	case *time.Duration:
 		handleVar(b.binding, ptr, time.ParseDuration, flagPkg.DurationVar)
@@ -224,7 +224,7 @@ type binding struct {
 	// if the target is []byte, decoder will be used to decode the input string
 	sliceSep   string
 	decoder    StringDecodeFunc
-	timeFormat string
+	timeLayout string
 }
 
 func handleVar[T any](
