@@ -19,14 +19,14 @@ var SliceSeparator = ","
 var TimeLayout = time.RFC3339
 var StringDecodeFunc = base64.StdEncoding.DecodeString
 
-type Binding[T Builtin] struct {
+type Binding[T builtin] struct {
 	binding
 
 	p   *T
 	def T
 }
 
-func Var[T Builtin](p *T) *Binding[T] {
+func Var[T builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
 	}

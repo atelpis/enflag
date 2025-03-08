@@ -29,8 +29,7 @@ import (
 	"time"
 )
 
-// TODO: rename to Predefined or Builtin
-type Builtin interface {
+type builtin interface {
 	[]byte |
 		string | []string |
 		int | []int | int64 | []int64 |
