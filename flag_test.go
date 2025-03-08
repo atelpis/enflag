@@ -214,6 +214,33 @@ func TestSetEnv(t *testing.T) {
 			},
 		},
 		{
+			name: "JSON",
+			envs: []string{"OBJ", `{"a": 1, "s": [1, 2, 3]}`},
+
+			// for testing parsing from flags
+			flags: []string{"obj", `{"a": 4, "s": [3, 2, 1]}`},
+			f: func(t *testing.T) []func() {
+				type obj struct {
+					A int    `json:"a"`
+					S []uint `json:"S"`
+				}
+
+				var targetEnv obj
+				var targetFlag obj
+				VarJSON(&targetEnv).BindEnv("OBJ")
+				VarJSON(&targetFlag).BindFlag("obj")
+
+				return []func(){
+					func() { checkVal(t, 1, targetEnv.A) },
+					func() { checkSlice(t, []uint{1, 2, 3}, targetEnv.S) },
+
+					func() { checkVal(t, 4, targetFlag.A) },
+					func() { checkSlice(t, []uint{3, 2, 1}, targetFlag.S) },
+				}
+			},
+		},
+
+		{
 			name: "URL",
 			// for testing parsing from env
 			envs: []string{"BASE_ADMIN_URL", "https://admin.my-domain.com/home"},
