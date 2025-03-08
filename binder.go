@@ -230,7 +230,6 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			b.binding,
 			ptr,
 			func(s string) (time.Time, error) {
-				println("parser", s, b.timeFormat)
 				return time.Parse(b.timeFormat, s)
 			},
 		)
