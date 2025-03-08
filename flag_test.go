@@ -100,6 +100,17 @@ func TestSetEnv(t *testing.T) {
 			},
 		},
 		{
+			name:  "Int64 slice",
+			envs:  []string{"IDS", "1,3,4"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []int64
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []int64{1, 3, 4}, target) })
+			},
+		},
+		{
 			name:  "Uint",
 			envs:  []string{"PORT", "8888"},
 			flags: []string{"port", "443"},
@@ -109,6 +120,17 @@ func TestSetEnv(t *testing.T) {
 				Var(&target).WithDefault(80).WithFlagUsage("uint value").Bind("PORT", "port")
 
 				return toSlice(func() { checkVal(t, uint(443), target) })
+			},
+		},
+		{
+			name:  "Uint slice",
+			envs:  []string{"IDS", "1,3,4"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []uint
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []uint{1, 3, 4}, target) })
 			},
 		},
 		{
@@ -124,6 +146,17 @@ func TestSetEnv(t *testing.T) {
 			},
 		},
 		{
+			name:  "Uint64 slice",
+			envs:  []string{"IDS", "1,3,4"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []uint64
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []uint64{1, 3, 4}, target) })
+			},
+		},
+		{
 			name:  "Float64",
 			envs:  []string{"LLM_TEMP", "0.35"},
 			flags: []string{"llm-temp", "0.45"},
@@ -133,6 +166,17 @@ func TestSetEnv(t *testing.T) {
 				Var(&target).WithDefault(1).WithFlagUsage("llm requests temperature").Bind("LLM_TEMP", "llm-temp")
 
 				return toSlice(func() { checkVal(t, float64(0.45), target) })
+			},
+		},
+		{
+			name:  "Float64 slice",
+			envs:  []string{"IDS", "1,3,4"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []float64
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []float64{1, 3, 4}, target) })
 			},
 		},
 		{
@@ -156,6 +200,17 @@ func TestSetEnv(t *testing.T) {
 					func() { checkVal(t, false, targetNumeric) },
 					func() { checkVal(t, false, targetStr) },
 				}
+			},
+		},
+		{
+			name:  "Bool slice",
+			envs:  []string{"IDS", "1,true,false"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target []bool
+				Var(&target).BindEnv("IDS")
+
+				return toSlice(func() { checkSlice(t, []bool{true, true, false}, target) })
 			},
 		},
 		{

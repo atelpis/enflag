@@ -141,11 +141,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]int:
-		handleSliceVar(
-			b.binding,
-			ptr,
-			strconv.Atoi,
-		)
+		handleSliceVar(b.binding, ptr, strconv.Atoi)
 
 	case *int64:
 		handleVar(
@@ -155,6 +151,15 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 				return strconv.ParseInt(s, 10, 64)
 			},
 			flagPkg.Int64Var,
+		)
+
+	case *[]int64:
+		handleSliceVar(
+			b.binding,
+			ptr,
+			func(s string) (int64, error) {
+				return strconv.ParseInt(s, 10, 64)
+			},
 		)
 
 	case *uint:
@@ -171,6 +176,19 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			flagPkg.UintVar,
 		)
 
+	case *[]uint:
+		handleSliceVar(
+			b.binding,
+			ptr,
+			func(s string) (uint, error) {
+				v, err := strconv.ParseUint(s, 10, 64)
+				if err != nil {
+					return 0, err
+				}
+				return uint(v), nil
+			},
+		)
+
 	case *uint64:
 		handleVar(
 			b.binding,
@@ -179,6 +197,15 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 				return strconv.ParseUint(s, 10, 64)
 			},
 			flagPkg.Uint64Var,
+		)
+
+	case *[]uint64:
+		handleSliceVar(
+			b.binding,
+			ptr,
+			func(s string) (uint64, error) {
+				return strconv.ParseUint(s, 10, 64)
+			},
 		)
 
 	case *float64:
@@ -191,13 +218,20 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			flagPkg.Float64Var,
 		)
 
-	case *bool:
-		handleVar(
+	case *[]float64:
+		handleSliceVar(
 			b.binding,
 			ptr,
-			strconv.ParseBool,
-			flagPkg.BoolVar,
+			func(s string) (float64, error) {
+				return strconv.ParseFloat(s, 10)
+			},
 		)
+
+	case *bool:
+		handleVar(b.binding, ptr, strconv.ParseBool, flagPkg.BoolVar)
+
+	case *[]bool:
+		handleSliceVar(b.binding, ptr, strconv.ParseBool)
 
 	case *time.Duration:
 		handleVar(
