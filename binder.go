@@ -299,11 +299,31 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case **net.IP:
-		// TODO:
+		handleVar(
+			b.binding,
+			ptr,
+			func(s string) (*net.IP, error) {
+				ip := net.ParseIP(s)
+				if ip == nil {
+					return nil, errors.New("invalid IP address")
+				}
+				return &ip, nil
+			},
+			nil,
+		)
 
 	case *[]net.IP:
-		// TODO:
-
+		handleSlice(
+			b.binding,
+			ptr,
+			func(s string) (net.IP, error) {
+				ip := net.ParseIP(s)
+				if ip == nil {
+					return nil, errors.New("invalid IP address")
+				}
+				return ip, nil
+			},
+		)
 	}
 }
 

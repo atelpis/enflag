@@ -313,15 +313,32 @@ func TestBind(t *testing.T) {
 			flags: []string{"balancer-ip", "10.56.2.138"},
 			f: func(t *testing.T) []func() {
 				var target net.IP
-				var targetBalancer net.IP
+				var targetBalancer *net.IP
 				def := net.IP{127, 0, 0, 1}
 
 				Var(&target).WithDefault(def).BindEnv("DNS_IP")
-				Var(&targetBalancer).WithFlagUsage("ip address of the balancer").WithDefault(def).BindFlag("balancer-ip")
+				Var(&targetBalancer).WithFlagUsage("ip address of the balancer").BindFlag("balancer-ip")
 
 				return []func(){
 					func() { checkVal(t, "127.0.0.8", target.String()) },
 					func() { checkVal(t, "10.56.2.138", targetBalancer.String()) },
+				}
+			},
+		},
+		{
+			name: "IP slice",
+
+			envs: []string{"DNS_IPS", "127.0.0.8,127.0.0.9"},
+
+			f: func(t *testing.T) []func() {
+				var target []net.IP
+
+				Var(&target).BindEnv("DNS_IPS")
+
+				return []func(){
+					func() { checkVal(t, 2, len(target)) },
+					func() { checkVal(t, "127.0.0.8", target[0].String()) },
+					func() { checkVal(t, "127.0.0.9", target[1].String()) },
 				}
 			},
 		},
