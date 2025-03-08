@@ -22,38 +22,6 @@ type StringDecodeFunc func(string) ([]byte, error)
 var Base64DecodeFunc StringDecodeFunc = base64.StdEncoding.DecodeString
 var HexDecodeFunc StringDecodeFunc = hex.DecodeString
 
-func test() {
-
-	var t int
-	// NewBinder(&t).WithDefault(7).Bind("TEST", "test")
-	Var(&t).BindEnv("TEST")
-
-	// SLICES
-	var st []int
-	// NewBinder(&st).WithSliceSeparator(":").Bind("TEST-SL", "test-sl")
-	Var(&st).WithSliceSeparator(":").Bind("TEST-SL", "test-sl")
-
-	// SLICES FUNC
-	var t2 int
-	VarFunc(&t2, strconv.Atoi).Bind("TEST2", "test2")
-
-	// BYTES
-	var secret []byte
-	Var(&secret).WithDecoder(HexDecodeFunc).Bind("e", "f")
-
-	// Parse JSON string into the target
-	type User struct {
-		ID   int
-		Name string
-	}
-	var usr User
-	VarJSON(&usr).Bind("e2", "f")
-
-	// TIME
-	var ts time.Time
-	Var(&ts).WithTimeFormat(time.RFC1123).Bind("e", "f")
-}
-
 type Binding[T Bindable] struct {
 	binding
 
