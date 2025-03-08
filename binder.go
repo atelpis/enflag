@@ -15,10 +15,27 @@ import (
 	"github.com/atelpis/enflag/internal/parsers"
 )
 
+// SliceSeparator is the default separator for parsing slices.
 var SliceSeparator = ","
+
+// TimeLayout is the default layout for parsing time.
 var TimeLayout = time.RFC3339
+
+// StringDecodeFunc is the default string-to-[]byte decoder.
 var StringDecodeFunc = base64.StdEncoding.DecodeString
 
+// Binding holds a pointer to a specified variable along with settings
+// for parsing environment variables and command-line flags into it.
+// It is a generic type constrained by `builtin`.
+// For details on the supported types, refer to the `builtin` constraint.
+//
+// A Binding should always be created using the Var function and finalized
+// by calling Bind(), BindEnv(), or BindFlag().
+//
+// Example usage:
+//
+//	var port int
+//	Var(&port).Bind("PORT", "port")
 type Binding[T builtin] struct {
 	binding
 
@@ -26,6 +43,24 @@ type Binding[T builtin] struct {
 	def T
 }
 
+// Var creates a new Binding for the given pointer p.
+//
+// The created Binding should be finalized by calling Bind(), BindEnv(),
+// or BindFlag().
+//
+// Example usage:
+//
+//	var port int
+//	Var(&port).Bind("PORT", "port")
+//
+// For more advanced usage, methods like WithDefault and WithSliceSeparator
+// can be chained. For example:
+//
+//	var ts time.Time
+//	Var(&ts).
+//	    WithFlagUsage("").
+//	    WithTimeLayout(time.DateOnly).
+//	    Bind("START_TIME", "start-time")
 func Var[T builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
@@ -37,48 +72,57 @@ func Var[T builtin](p *T) *Binding[T] {
 	return b
 }
 
-func VarFunc[T any](p *T, parser func(string) (T, error)) *CustomBinding[T] {
-	b := CustomBinding[T]{
-		p:      p,
-		parser: parser,
-	}
-
-	return &b
-}
-
-func VarJSON[T any](p *T) *CustomBinding[T] {
-	return VarFunc(p, func(s string) (T, error) {
-		var d T
-		err := json.Unmarshal([]byte(s), &d)
-		return d, err
-	})
-}
-
+// WithDefault sets the default value for Binding.
 func (b *Binding[T]) WithDefault(val T) *Binding[T] {
 	b.def = val
 	return b
 }
 
+// WithFlagUsage sets the help message for the bound command-line flag.
 func (b *Binding[T]) WithFlagUsage(usage string) *Binding[T] {
 	b.flagUsage = usage
 	return b
 }
 
+// WithSliceSeparator sets a slice separator for the Binding.
+// This is only applicable to slice types of the builtin constraint.
+//
+// If not explicitly set, the global variable SliceSeparator will be used.
+// The default value of the SliceSeparator is ",".
 func (b *Binding[T]) WithSliceSeparator(sep string) *Binding[T] {
 	b.sliceSep = sep
 	return b
 }
 
+// WithStringDecodeFunc sets a function for decoding a string into []byte.
+// This is only applicable to []byte variables.
+//
+// If not explicitly set, the global variable StringDecodeFunc() will be used.
+// The default decoder is base64.StdEncoding.DecodeString.
 func (b *Binding[T]) WithStringDecodeFunc(f func(string) ([]byte, error)) *Binding[T] {
 	b.decoder = f
 	return b
 }
 
+// WithTimeLayout sets a layout for parsing time for this Binding.
+// This is only applicable to time variables.
+//
+// If not explicitly set, the global variable TimeLayout() will be used.
+// The default layout is time.RFC3339.
 func (b *Binding[T]) WithTimeLayout(layout string) *Binding[T] {
 	b.timeLayout = layout
 	return b
 }
 
+// Bind registers an environment variable and a command-line flag
+// as data sources for this Binding. Both sources are optional.
+// Use BindEnv or BindFlag to bind a single source.
+//
+// Data sources are prioritized as follows:
+// flag > environment variable > default value.
+//
+// If a flag is used, Parse() must be called after all bindings
+// are created.
 func (b *Binding[T]) Bind(envName string, flagName string) {
 	b.envName, b.flagName = envName, flagName
 	*b.p = b.def
@@ -164,14 +208,22 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 	}
 }
 
+// BindEnv is a shorthand for Bind when only an environment variable is needed.
 func (b *Binding[T]) BindEnv(name string) {
 	b.Bind(name, "")
 }
 
+// BindFlag is a shorthand for Bind when only a command-line flag is needed.
 func (b *Binding[T]) BindFlag(name string) {
 	b.Bind("", name)
 }
 
+// CustomBinding holds a pointer to a variable along with a custom parser
+// and additional settings.
+//
+// A CustomBinding should always be created using VarFunc or its alternatives,
+// such as VarJSON, and must be finalized by calling Bind(), BindEnv(),
+// or BindFlag().
 type CustomBinding[T any] struct {
 	binding
 
@@ -180,16 +232,51 @@ type CustomBinding[T any] struct {
 	parser func(string) (T, error)
 }
 
+// VarFunc creates a new CustomBinding for the given pointer p and
+// the specified string parser function. The parser function is used
+// to convert a string into the desired type T and will be used to parse
+// both the environment variable and the flag.
+func VarFunc[T any](p *T, parser func(string) (T, error)) *CustomBinding[T] {
+	b := CustomBinding[T]{
+		p:      p,
+		parser: parser,
+	}
+
+	return &b
+}
+
+// VarJSON creates a new CustomBinding for the given pointer p and
+// uses JSON unmarshaling as the parser for both the environment variable
+// and the flag.
+func VarJSON[T any](p *T) *CustomBinding[T] {
+	return VarFunc(p, func(s string) (T, error) {
+		var d T
+		err := json.Unmarshal([]byte(s), &d)
+		return d, err
+	})
+}
+
+// WithDefault sets the default value for the CustomBinding.
 func (b *CustomBinding[T]) WithDefault(val T) *CustomBinding[T] {
 	b.def = val
 	return b
 }
 
+// WithFlagUsage sets the help message for the bound command-line flag.
 func (b *CustomBinding[T]) WithFlagUsage(usage string) *CustomBinding[T] {
 	b.flagUsage = usage
 	return b
 }
 
+// Bind registers an environment variable and a command-line flag
+// as data sources for this Binding. Both sources are optional.
+// Use BindEnv or BindFlag to bind a single source.
+//
+// Data sources are prioritized as follows:
+// flag > environment variable > default value.
+//
+// If a flag is used, Parse() must be called after all bindings
+// are created.
 func (b *CustomBinding[T]) Bind(envName string, flagName string) {
 	b.envName, b.flagName = envName, flagName
 	*b.p = b.def
@@ -198,10 +285,12 @@ func (b *CustomBinding[T]) Bind(envName string, flagName string) {
 
 }
 
+// BindEnv is a shorthand for Bind when only an environment variable is needed.
 func (b *CustomBinding[T]) BindEnv(name string) {
 	b.Bind(name, "")
 }
 
+// BindFlag is a shorthand for Bind when only a command-line flag is needed.
 func (b *CustomBinding[T]) BindFlag(name string) {
 	b.Bind("", name)
 }
