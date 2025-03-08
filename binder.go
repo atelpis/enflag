@@ -92,79 +92,79 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 
 	switch ptr := any(b.p).(type) {
 	case *[]byte:
-		handleVar(b.binding, ptr, b.decoder, nil)
+		handleVar(b.binding, ptr, b.decoder)
 
 	case *string:
-		handleVar(b.binding, ptr, parsers.String, flag.StringVar)
+		handleVar(b.binding, ptr, parsers.String)
 
 	case *[]string:
 		handleSlice(b.binding, ptr, parsers.String)
 
 	case *int:
-		handleVar(b.binding, ptr, strconv.Atoi, flag.IntVar)
+		handleVar(b.binding, ptr, strconv.Atoi)
 
 	case *[]int:
 		handleSlice(b.binding, ptr, strconv.Atoi)
 
 	case *int64:
-		handleVar(b.binding, ptr, parsers.Inte64, flag.Int64Var)
+		handleVar(b.binding, ptr, parsers.Inte64)
 
 	case *[]int64:
 		handleSlice(b.binding, ptr, parsers.Inte64)
 
 	case *uint:
-		handleVar(b.binding, ptr, parsers.Uint, flag.UintVar)
+		handleVar(b.binding, ptr, parsers.Uint)
 
 	case *[]uint:
 		handleSlice(b.binding, ptr, parsers.Uint)
 
 	case *uint64:
-		handleVar(b.binding, ptr, parsers.Uint64, flag.Uint64Var)
+		handleVar(b.binding, ptr, parsers.Uint64)
 
 	case *[]uint64:
 		handleSlice(b.binding, ptr, parsers.Uint64)
 
 	case *float64:
-		handleVar(b.binding, ptr, parsers.Float64, flag.Float64Var)
+		handleVar(b.binding, ptr, parsers.Float64)
 
 	case *[]float64:
 		handleSlice(b.binding, ptr, parsers.Float64)
 
 	case *bool:
-		handleVar(b.binding, ptr, strconv.ParseBool, flag.BoolVar)
+		handleVar(b.binding, ptr, strconv.ParseBool)
 
 	case *[]bool:
 		handleSlice(b.binding, ptr, strconv.ParseBool)
 
 	case *time.Time:
-		handleVar(b.binding, ptr, parsers.Time(b.timeLayout), nil)
+		handleVar(b.binding, ptr, parsers.Time(b.timeLayout))
 
 	case **time.Time:
-		handleVar(b.binding, ptr, parsers.Ptr(parsers.Time(b.timeLayout)), nil)
+		handleVar(b.binding, ptr, parsers.Ptr(parsers.Time(b.timeLayout)))
 
 	case *[]time.Time:
 		handleSlice(b.binding, ptr, parsers.Time(b.timeLayout))
 
 	case *time.Duration:
-		handleVar(b.binding, ptr, time.ParseDuration, flag.DurationVar)
+		handleVar(b.binding, ptr, time.ParseDuration)
 
 	case *[]time.Duration:
 		handleSlice(b.binding, ptr, time.ParseDuration)
 
 	case *url.URL:
-		handleVar(b.binding, ptr, parsers.URL, nil)
+		handleVar(b.binding, ptr, parsers.URL)
 
 	case **url.URL:
-		handleVar(b.binding, ptr, url.Parse, nil)
+		handleVar(b.binding, ptr, url.Parse)
 
 	case *[]url.URL:
 		handleSlice(b.binding, ptr, parsers.URL)
 
 	case *net.IP:
-		handleVar(b.binding, ptr, parsers.IP, nil)
+		handleVar(b.binding, ptr, parsers.IP)
 
 	case **net.IP:
-		handleVar(b.binding, ptr, parsers.Ptr(parsers.IP), nil)
+		handleVar(b.binding, ptr, parsers.Ptr(parsers.IP))
 
 	case *[]net.IP:
 		handleSlice(b.binding, ptr, parsers.IP)
@@ -201,12 +201,7 @@ func (b *CustomBinding[T]) Bind(envName string, flagName string) {
 	b.envName, b.flagName = envName, flagName
 	*b.p = b.def
 
-	handleVar(
-		b.binding,
-		b.p,
-		b.parser,
-		nil,
-	)
+	handleVar(b.binding, b.p, b.parser)
 
 }
 
@@ -223,19 +218,12 @@ type binding struct {
 	flagName  string
 	flagUsage string
 
-	// Bindable-specific fields
-	// if the target is []byte, decoder will be used to decode the input string
 	sliceSep   string
 	decoder    StringDecodeFunc
 	timeLayout string
 }
 
-func handleVar[T any](
-	b binding,
-	ptr *T,
-	parser func(string) (T, error),
-	stdFlagFunc func(*T, string, T, string),
-) {
+func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 	if envVal := os.Getenv(b.envName); envVal != "" {
 		v, err := parser(envVal)
 		if err != nil {
@@ -255,27 +243,19 @@ func handleVar[T any](
 	}
 
 	if b.flagName != "" {
-		if stdFlagFunc != nil {
-			stdFlagFunc(ptr, b.flagName, *ptr, b.flagUsage)
-		} else {
-			flag.Func(b.flagName, b.flagUsage, func(s string) error {
-				parsed, err := parser(s)
-				if err != nil {
-					return err
-				}
+		flag.Func(b.flagName, b.flagUsage, func(s string) error {
+			parsed, err := parser(s)
+			if err != nil {
+				return err
+			}
 
-				*ptr = parsed
-				return nil
-			})
-		}
+			*ptr = parsed
+			return nil
+		})
 	}
 }
 
-func handleSlice[T any](
-	b binding,
-	ptr *[]T,
-	parser func(string) (T, error),
-) {
+func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 	if envVal := os.Getenv(b.envName); envVal != "" {
 		for _, v := range strings.Split(envVal, b.sliceSep) {
 			parsed, err := parser(v)
