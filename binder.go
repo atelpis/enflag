@@ -24,6 +24,7 @@ var Base64DecodeFunc StringDecodeFunc = base64.StdEncoding.DecodeString
 var HexDecodeFunc StringDecodeFunc = hex.DecodeString
 
 var SliceSeparator = ","
+var TimeLayout = time.RFC3339
 
 type Binding[T Builtin] struct {
 	binding
@@ -36,7 +37,7 @@ func Var[T Builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
 	}
-	b.timeLayout = time.RFC3339
+	b.timeLayout = TimeLayout
 	b.decoder = Base64DecodeFunc
 	b.sliceSep = SliceSeparator
 
