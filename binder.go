@@ -372,7 +372,7 @@ func handleSliceVar[T any](
 		}
 	}
 
-	if b.flagName == "" {
+	if b.flagName != "" {
 		flagPkg.Func(b.flagName, b.flagUsage, func(s string) error {
 			for _, v := range strings.Split(s, b.sliceSep) {
 				parsed, err := parser(v)
