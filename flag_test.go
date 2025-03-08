@@ -1,6 +1,7 @@
 package enflag
 
 import (
+	"encoding/hex"
 	"flag"
 	"net"
 	"net/url"
@@ -75,7 +76,7 @@ func TestBind(t *testing.T) {
 				Var(&targetBase64).BindEnv("SECRET")
 
 				var targetHEX []byte
-				Var(&targetHEX).WithDecoder(HexDecodeFunc).BindFlag("secret-hex")
+				Var(&targetHEX).WithStringDecodeFunc(hex.DecodeString).BindFlag("secret-hex")
 
 				return []func(){
 					func() { checkSlice(t, []byte{1, 2, 3}, targetBase64) },

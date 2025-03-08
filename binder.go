@@ -2,7 +2,6 @@ package enflag
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,15 +15,9 @@ import (
 	"github.com/atelpis/enflag/internal/parsers"
 )
 
-// TODO: proper name
-type StringDecodeFunc func(string) ([]byte, error)
-
-// TODO: consider moving to a sub-package
-var Base64DecodeFunc StringDecodeFunc = base64.StdEncoding.DecodeString
-var HexDecodeFunc StringDecodeFunc = hex.DecodeString
-
 var SliceSeparator = ","
 var TimeLayout = time.RFC3339
+var StringDecodeFunc = base64.StdEncoding.DecodeString
 
 type Binding[T Builtin] struct {
 	binding
@@ -37,9 +30,9 @@ func Var[T Builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
 	}
-	b.timeLayout = TimeLayout
-	b.decoder = Base64DecodeFunc
 	b.sliceSep = SliceSeparator
+	b.timeLayout = TimeLayout
+	b.decoder = StringDecodeFunc
 
 	return b
 }
@@ -76,7 +69,7 @@ func (b *Binding[T]) WithSliceSeparator(sep string) *Binding[T] {
 	return b
 }
 
-func (b *Binding[T]) WithDecoder(f func(string) ([]byte, error)) *Binding[T] {
+func (b *Binding[T]) WithStringDecodeFunc(f func(string) ([]byte, error)) *Binding[T] {
 	b.decoder = f
 	return b
 }
@@ -219,7 +212,7 @@ type binding struct {
 	flagUsage string
 
 	sliceSep   string
-	decoder    StringDecodeFunc
+	decoder    func(string) ([]byte, error)
 	timeLayout string
 }
 
