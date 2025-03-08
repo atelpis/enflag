@@ -112,7 +112,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]int:
-		handleSliceVar(b.binding, ptr, strconv.Atoi)
+		handleSlice(b.binding, ptr, strconv.Atoi)
 
 	case *int64:
 		handleVar(
@@ -125,7 +125,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]int64:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			func(s string) (int64, error) {
@@ -148,7 +148,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]uint:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			func(s string) (uint, error) {
@@ -171,7 +171,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]uint64:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			func(s string) (uint64, error) {
@@ -190,7 +190,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]float64:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			func(s string) (float64, error) {
@@ -202,7 +202,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleVar(b.binding, ptr, strconv.ParseBool, flagPkg.BoolVar)
 
 	case *[]bool:
-		handleSliceVar(b.binding, ptr, strconv.ParseBool)
+		handleSlice(b.binding, ptr, strconv.ParseBool)
 
 	case *time.Time:
 		handleVar(
@@ -226,7 +226,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]time.Time:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			func(s string) (time.Time, error) {
@@ -243,7 +243,7 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]time.Duration:
-		handleSliceVar(
+		handleSlice(
 			b.binding,
 			ptr,
 			time.ParseDuration,
@@ -397,7 +397,7 @@ func handleVar[T any](
 	}
 }
 
-func handleSliceVar[T any](
+func handleSlice[T any](
 	b binding,
 	ptr *[]T,
 	parser func(string) (T, error),
