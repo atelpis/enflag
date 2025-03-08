@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	flagPkg "flag"
 	"fmt"
 	"net"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/atelpis/enflag/internal/parsers"
 )
 
 // TODO: proper name
@@ -91,116 +92,40 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleVar(b.binding, ptr, b.decoder, nil)
 
 	case *string:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (string, error) {
-				return s, nil
-			},
-			flagPkg.StringVar,
-		)
+		handleVar(b.binding, ptr, parsers.String, flagPkg.StringVar)
 
 	case *[]string:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (string, error) { return s, nil },
-		)
+		handleSlice(b.binding, ptr, parsers.String)
 
 	case *int:
-		handleVar(
-			b.binding,
-			ptr,
-			strconv.Atoi,
-			flagPkg.IntVar,
-		)
+		handleVar(b.binding, ptr, strconv.Atoi, flagPkg.IntVar)
 
 	case *[]int:
 		handleSlice(b.binding, ptr, strconv.Atoi)
 
 	case *int64:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (int64, error) {
-				return strconv.ParseInt(s, 10, 64)
-			},
-			flagPkg.Int64Var,
-		)
+		handleVar(b.binding, ptr, parsers.Inte64, flagPkg.Int64Var)
 
 	case *[]int64:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (int64, error) {
-				return strconv.ParseInt(s, 10, 64)
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.Inte64)
 
 	case *uint:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (uint, error) {
-				v, err := strconv.ParseUint(s, 10, 64)
-				if err != nil {
-					return 0, err
-				}
-				return uint(v), nil
-			},
-			flagPkg.UintVar,
-		)
+		handleVar(b.binding, ptr, parsers.Uint, flagPkg.UintVar)
 
 	case *[]uint:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (uint, error) {
-				v, err := strconv.ParseUint(s, 10, 64)
-				if err != nil {
-					return 0, err
-				}
-				return uint(v), nil
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.Uint)
 
 	case *uint64:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (uint64, error) {
-				return strconv.ParseUint(s, 10, 64)
-			},
-			flagPkg.Uint64Var,
-		)
+		handleVar(b.binding, ptr, parsers.Uint64, flagPkg.Uint64Var)
 
 	case *[]uint64:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (uint64, error) {
-				return strconv.ParseUint(s, 10, 64)
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.Uint64)
 
 	case *float64:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (float64, error) {
-				return strconv.ParseFloat(s, 10)
-			},
-			flagPkg.Float64Var,
-		)
+		handleVar(b.binding, ptr, parsers.Float64, flagPkg.Float64Var)
 
 	case *[]float64:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (float64, error) {
-				return strconv.ParseFloat(s, 10)
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.Float64)
 
 	case *bool:
 		handleVar(b.binding, ptr, strconv.ParseBool, flagPkg.BoolVar)
@@ -209,125 +134,37 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		handleSlice(b.binding, ptr, strconv.ParseBool)
 
 	case *time.Time:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (time.Time, error) {
-				return time.Parse(b.timeFormat, s)
-			},
-			nil,
-		)
+		handleVar(b.binding, ptr, parsers.Time(b.timeFormat), nil)
 
 	case **time.Time:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (*time.Time, error) {
-				ts, err := time.Parse(b.timeFormat, s)
-				return &ts, err
-			},
-			nil,
-		)
+		handleVar(b.binding, ptr, parsers.Ptr(parsers.Time(b.timeFormat)), nil)
 
 	case *[]time.Time:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (time.Time, error) {
-				return time.Parse(b.timeFormat, s)
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.Time(b.timeFormat))
 
 	case *time.Duration:
-		handleVar(
-			b.binding,
-			ptr,
-			time.ParseDuration,
-			flagPkg.DurationVar,
-		)
+		handleVar(b.binding, ptr, time.ParseDuration, flagPkg.DurationVar)
 
 	case *[]time.Duration:
-		handleSlice(
-			b.binding,
-			ptr,
-			time.ParseDuration,
-		)
+		handleSlice(b.binding, ptr, time.ParseDuration)
 
 	case *url.URL:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (url.URL, error) {
-				u, err := url.Parse(s)
-				if err != nil {
-					return url.URL{}, err
-				}
-				return *u, nil
-			},
-			nil,
-		)
+		handleVar(b.binding, ptr, parsers.URL, nil)
 
 	case **url.URL:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (*url.URL, error) { return url.Parse(s) },
-			nil,
-		)
+		handleVar(b.binding, ptr, url.Parse, nil)
 
 	case *[]url.URL:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (url.URL, error) {
-				u, err := url.Parse(s)
-				if err != nil {
-					return url.URL{}, err
-				}
-				return *u, nil
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.URL)
 
 	case *net.IP:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (net.IP, error) {
-				ip := net.ParseIP(s)
-				if ip == nil {
-					return nil, errors.New("invalid IP address")
-				}
-				return ip, nil
-			},
-			nil,
-		)
+		handleVar(b.binding, ptr, parsers.IP, nil)
 
 	case **net.IP:
-		handleVar(
-			b.binding,
-			ptr,
-			func(s string) (*net.IP, error) {
-				ip := net.ParseIP(s)
-				if ip == nil {
-					return nil, errors.New("invalid IP address")
-				}
-				return &ip, nil
-			},
-			nil,
-		)
+		handleVar(b.binding, ptr, parsers.Ptr(parsers.IP), nil)
 
 	case *[]net.IP:
-		handleSlice(
-			b.binding,
-			ptr,
-			func(s string) (net.IP, error) {
-				ip := net.ParseIP(s)
-				if ip == nil {
-					return nil, errors.New("invalid IP address")
-				}
-				return ip, nil
-			},
-		)
+		handleSlice(b.binding, ptr, parsers.IP)
 	}
 }
 
