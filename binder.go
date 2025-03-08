@@ -119,6 +119,9 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 	*b.p = b.def
 
 	switch ptr := any(b.p).(type) {
+	case *[]byte:
+		handleVar(b.binding, ptr, b.decoder, nil)
+
 	case *string:
 		handleVar(
 			b.binding,

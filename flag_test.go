@@ -60,6 +60,23 @@ func TestSetEnv(t *testing.T) {
 			},
 		},
 		{
+			name:  "Base64 bytes",
+			envs:  []string{"SECRET", "AQID"},
+			flags: []string{"secret-hex", "010203"},
+			f: func(t *testing.T) []func() {
+				var targetBase64 []byte
+				Var(&targetBase64).BindEnv("SECRET")
+
+				var targetHEX []byte
+				Var(&targetHEX).WithDecoder(HexDecodeFunc).BindFlag("secret-hex")
+
+				return []func(){
+					func() { checkSlice(t, []byte{1, 2, 3}, targetBase64) },
+					func() { checkSlice(t, []byte{1, 2, 3}, targetHEX) },
+				}
+			},
+		},
+		{
 			name:  "Int slice",
 			envs:  []string{"IDS", "1,3,4"},
 			flags: nil,
