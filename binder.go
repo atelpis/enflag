@@ -22,14 +22,14 @@ type StringDecodeFunc func(string) ([]byte, error)
 var Base64DecodeFunc StringDecodeFunc = base64.StdEncoding.DecodeString
 var HexDecodeFunc StringDecodeFunc = hex.DecodeString
 
-type Binding[T Bindable] struct {
+type Binding[T Builtin] struct {
 	binding
 
 	p   *T
 	def T
 }
 
-func Var[T Bindable](p *T) *Binding[T] {
+func Var[T Builtin](p *T) *Binding[T] {
 	b := &Binding[T]{
 		p: p,
 	}
@@ -99,6 +99,9 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			},
 			flagPkg.StringVar,
 		)
+
+	case *[]string:
+		// TODO:
 
 	case *int:
 		handleVar(
@@ -240,6 +243,9 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			flagPkg.DurationVar,
 		)
 
+	case *[]time.Duration:
+		// TODO:
+
 	case *url.URL:
 		handleVar(
 			b.binding,
@@ -262,6 +268,9 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			nil,
 		)
 
+	case *[]url.URL:
+		// TODO:
+
 	case *net.IP:
 		handleVar(
 			b.binding,
@@ -275,6 +284,13 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 			},
 			nil,
 		)
+
+	case **net.IP:
+		// TODO:
+
+	case *[]net.IP:
+		// TODO:
+
 	}
 }
 
