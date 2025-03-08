@@ -1,3 +1,30 @@
+/*
+Package enflag provides functionality for parsing values from environment variables
+and command-line flags, two common configuration sources for server-side applications.
+
+Configuration values are prioritized in the following order:
+flag > environment variable > default value. Both environment variables and flags are optional.
+
+Flag parsing is handled by the standard library's flag package via the CommandLine flag set.
+Like the flag package, errors encountered during environment variable parsing will cause
+the program to exit with status code 2.
+
+# Example usage:
+
+	var port int
+	Var(&port).Bind("PORT", "port")
+
+	var ts time.Time
+	Var(&ts).
+	    WithFlagUsage("").
+	    WithTimeLayout(time.DateOnly).
+	    Bind("START_TIME", "start-time")
+
+After all flags are defined, call
+
+	enflag.Parse()
+*/
+
 package enflag
 
 import (
@@ -14,6 +41,19 @@ import (
 
 	"github.com/atelpis/enflag/internal/parsers"
 )
+
+type builtin interface {
+	[]byte |
+		string | []string |
+		int | []int | int64 | []int64 |
+		uint | []uint | uint64 | []uint64 |
+		float64 | []float64 |
+		bool | []bool |
+		time.Time | *time.Time | []time.Time |
+		time.Duration | []time.Duration |
+		url.URL | *url.URL | []url.URL |
+		net.IP | *net.IP | []net.IP
+}
 
 // SliceSeparator is the default separator for parsing slices.
 var SliceSeparator = ","
@@ -295,6 +335,13 @@ func (b *CustomBinding[T]) BindFlag(name string) {
 	b.Bind("", name)
 }
 
+// Parse calls the standard library's `flag` package's `Parse()` function.
+// Like the standard library's `flag` package, Parse() must be called
+// after all flags have been defined.
+func Parse() {
+	flag.Parse()
+}
+
 type binding struct {
 	envName   string
 	flagName  string
@@ -373,3 +420,5 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		})
 	}
 }
+
+var isTestEnv bool
