@@ -272,7 +272,17 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 		)
 
 	case *[]url.URL:
-		// TODO:
+		handleSlice(
+			b.binding,
+			ptr,
+			func(s string) (url.URL, error) {
+				u, err := url.Parse(s)
+				if err != nil {
+					return url.URL{}, err
+				}
+				return *u, nil
+			},
+		)
 
 	case *net.IP:
 		handleVar(

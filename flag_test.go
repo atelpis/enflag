@@ -255,6 +255,26 @@ func TestBind(t *testing.T) {
 			},
 		},
 		{
+			name: "URL slice",
+			envs: []string{"URLS", "https://app.my-domain.com/home;https://app.my-domain.com/dashboard"},
+
+			f: func(t *testing.T) []func() {
+				var target []url.URL
+				Var(&target).WithSliceSeparator(";").BindEnv("URLS")
+
+				return []func(){
+					func() { checkVal(t, 2, len(target)) },
+					func() { checkVal(t, "https", target[0].Scheme) },
+					func() { checkVal(t, "app.my-domain.com", target[0].Host) },
+					func() { checkVal(t, "/home", target[0].Path) },
+
+					func() { checkVal(t, "https", target[1].Scheme) },
+					func() { checkVal(t, "app.my-domain.com", target[1].Host) },
+					func() { checkVal(t, "/dashboard", target[1].Path) },
+				}
+			},
+		},
+		{
 			name: "URL pointer",
 			// for testing parsing from env
 			envs: []string{"BASE_ADMIN_URL", "https://admin.my-domain.com/home"},
