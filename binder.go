@@ -201,6 +201,37 @@ func (b *Binding[T]) Bind(envName string, flagName string) {
 	case *[]bool:
 		handleSliceVar(b.binding, ptr, strconv.ParseBool)
 
+	case *time.Time:
+		handleVar(
+			b.binding,
+			ptr,
+			func(s string) (time.Time, error) {
+				return time.Parse(b.timeFormat, s)
+			},
+			nil,
+		)
+
+	case **time.Time:
+		handleVar(
+			b.binding,
+			ptr,
+			func(s string) (*time.Time, error) {
+				ts, err := time.Parse(b.timeFormat, s)
+				return &ts, err
+			},
+			nil,
+		)
+
+	case *[]time.Time:
+		handleSliceVar(
+			b.binding,
+			ptr,
+			func(s string) (time.Time, error) {
+				println("parser", s, b.timeFormat)
+				return time.Parse(b.timeFormat, s)
+			},
+		)
+
 	case *time.Duration:
 		handleVar(
 			b.binding,

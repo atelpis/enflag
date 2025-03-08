@@ -34,7 +34,7 @@ type Bindable interface {
 	[]byte |
 		string | []string | bool | []bool |
 		int | []int | int64 | []int64 | uint | []uint | uint64 | []uint64 | float64 | []float64 |
-		time.Time | *time.Time | []time.Time | time.Duration | []time.Duration | // TODO: support time parsing
+		time.Time | *time.Time | []time.Time | time.Duration | []time.Duration |
 		url.URL | []url.URL | *url.URL | []*url.URL | net.IP | []net.IP
 }
 

@@ -305,7 +305,36 @@ func TestBind(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:  "Time",
+			envs:  []string{"DATE_3339", "2025-03-07T12:34:56Z", "OPT_TIME", "2025-03-07T12:34:56Z"},
+			flags: []string{"date", "2025-03-07", "date-range", "2025-01-01:2025-03-07"},
+			f: func(t *testing.T) []func() {
+				expect, _ := time.Parse(time.RFC3339, "2025-03-07T12:34:56Z")
+				expectDateOnly := time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC)
+				expectRange := []time.Time{
+					time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					time.Date(2025, 3, 7, 0, 0, 0, 0, time.UTC),
+				}
 
+				var target3339 time.Time
+				var targetOpt *time.Time
+				var targetStampMillis time.Time
+				var targetRange []time.Time
+
+				Var(&target3339).BindEnv("DATE_3339")
+				Var(&targetOpt).BindEnv("OPT_TIME")
+				Var(&targetStampMillis).WithTimeFormat(time.DateOnly).BindFlag("date")
+				Var(&targetRange).WithSliceSeparator(":").WithTimeFormat(time.DateOnly).BindFlag("date-range")
+
+				return []func(){
+					func() { checkVal(t, expect, target3339) },
+					func() { checkVal(t, expect, *targetOpt) },
+					func() { checkVal(t, expectDateOnly, targetStampMillis) },
+					func() { checkSlice(t, expectRange, targetRange) },
+				}
+			},
+		},
 		{
 			name:  "Duration",
 			envs:  []string{"TTL", "5m"},
