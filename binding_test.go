@@ -470,7 +470,7 @@ func TestBind(t *testing.T) {
 			},
 		},
 		{
-			name: "Bad slice",
+			name: "Bad slice env",
 			envs: []string{"PORTS", "one,two"},
 
 			f: func(t *testing.T) []func() {
@@ -479,6 +479,18 @@ func TestBind(t *testing.T) {
 				Var(&target).BindEnv("PORTS")
 
 				return toSlice(func() { checkSlice(t, []int{0, 0}, target) })
+			},
+		},
+		{
+			name:  "Bad slice flag",
+			flags: []string{"ports", "one,two"},
+
+			f: func(t *testing.T) []func() {
+				var target []int
+
+				Var(&target).BindFlag("ports")
+
+				return toSlice(func() { checkSlice(t, []int{}, target) })
 			},
 		},
 
