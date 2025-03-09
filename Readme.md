@@ -41,20 +41,29 @@ generics to provide a cleaner and more convenient interface.
 
 ```go
 type MyServiceConf struct {
-    DBHost  string
-    DBPort  int
     BaseURL *url.URL
+    DBHost  string
+    Dates  []time.Time
 }
 
 func main() {
     var conf MyServiceConf
 
+    // basic usage
+    enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
+
+    // add settings
     enflag.Var(&conf.DBHost).
         WithDefault("127.0.0.1").
         WithFlagUsage("db hostname").
         Bind("DB_HOST", "db-host")
-    enflag.Var(&conf.DBPort).WithDefault(5432).Bind("DB_PORT", "db-port")
-    enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
+
+    // slice
+    enflag.
+        Var(&conf.Dates).
+        WithSliceSeparator("|").       // split the slice with a non-default separator
+        WithTimeLayout(time.DateOnly). // use non-default time layout
+        BindEnv("Dates")               // ignore flag, only read env
 
     enflag.Parse()
 }
