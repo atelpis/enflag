@@ -76,7 +76,7 @@ You can also use `VarFunc` with a custom parser to work with other types:
 
 ```go
 func main() {
-    var timeVar *time.Time
+    var customVar int64
 
     parser := func(s string) (int64, error) {
         res, err := strconv.ParseInt(s, 10, 64)
@@ -86,7 +86,7 @@ func main() {
 
         return res * 10, nil
     }
-    enflag.VarFunc(&conf.CustomVar, parser).Bind("CUSTOM", "custom")
+    enflag.VarFunc(&customVar, parser).Bind("CUSTOM", "custom")
 
     enflag.Parse()
 }
