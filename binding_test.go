@@ -435,25 +435,14 @@ func TestBind(t *testing.T) {
 				parser := func(s string) (string, error) {
 					return s + "-bbb", nil
 				}
-				VarFunc(&target, parser).WithDefault("a").Bind("MY_FORMAT", "my-format")
+				VarFunc(&target, parser).
+					WithFlagUsage("my format help").
+					WithDefault("a").
+					Bind("MY_FORMAT", "my-format")
 
 				return toSlice(func() { checkVal(t, "aaa-bbb", target) })
 			},
 		},
-		// {
-		// 	// TODO: check this case
-		// 	name: "Slice func",
-		// 	envs: []string{"MY_FORMAT_SL", "aa bb"},
-		// 	// flags: []string{"my-format-sl", "cc"},
-		// 	f: func(t *testing.T) []func() {
-		// 		var target []string
-		// 		BindSliceFunc(&target, "MY_FORMAT_SL", "my-format-sl", nil, "helper", " ", func(s string) (string, error) {
-		// 			return s + "-1", nil
-		// 		})
-		//
-		// 		return toSlice(func() { checkSlice(t, []string{"aa-1", "bb-1"}, target) })
-		// 	},
-		// },
 
 		// invalid data
 		{
@@ -479,7 +468,21 @@ func TestBind(t *testing.T) {
 
 				return toSlice(func() { checkVal(t, "", targetAdmin.Host) })
 			},
-		}, {
+		},
+		{
+			name: "Bad slice",
+			envs: []string{"PORTS", "one,two"},
+
+			f: func(t *testing.T) []func() {
+				var target []int
+
+				Var(&target).BindEnv("PORTS")
+
+				return toSlice(func() { checkSlice(t, []int{1, 2}, target) })
+			},
+		},
+
+		{
 			name: "IP bad env",
 			envs: []string{"DNS_IP", "aaa-bbb"},
 
