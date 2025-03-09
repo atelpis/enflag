@@ -49,21 +49,20 @@ type MyServiceConf struct {
 func main() {
     var conf MyServiceConf
 
-    // basic usage
+    // Basic usage
     enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
 
-    // add settings
+    // Add settings
     enflag.Var(&conf.DBHost).
         WithDefault("127.0.0.1").
         WithFlagUsage("db hostname").
         Bind("DB_HOST", "db-host")
 
-    // slice
-    enflag.
-        Var(&conf.Dates).
-        WithSliceSeparator("|").       // split the slice with a non-default separator
-        WithTimeLayout(time.DateOnly). // use non-default time layout
-        BindEnv("Dates")               // ignore flag, only read env
+    // Slice
+    enflag.Var(&conf.Dates).
+        WithSliceSeparator("|").       // Split the slice using a non-default separator
+        WithTimeLayout(time.DateOnly). // Use a non-default time layout
+        BindEnv("DATES")               // Bind only the env variable, ignore the flag
 
     enflag.Parse()
 }
