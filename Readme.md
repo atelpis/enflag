@@ -13,63 +13,83 @@ practice for cloud-oriented applications is to support both flags and
 corresponding environment variables. `Enflag` addresses this by defining
 both configuration sources in a single function call.
 
+## Features
+
+- Generics-based implementation, ensuring type safety
+- Unified API for both environment variables and command-line flags
+- Built-in parsing for all widely used types
+- Supports JSON, binary, and slices
+- Easily extendable with custom parsers
+- Minimalistic API
+- No external dependencies
+
 ## Usage
 
-The `Bind` function takes a pointer to a configuration variable and assigns its
-value according to the specified command-line flag or environment variable.
+The `Var` function takes a pointer to a configuration variable and assigns its
+value according to the specified command-line flag or environment variable
+using the `Bind` method.
 Both sources are optional, but a flag has higher priority.
+
+Additional methods like `WithDefault`, `WithTimeLayout`, etc. could be chained.
 
 Behind the scenes, flags are handled by the standard library's
 [flag.CommandLine flag set](https://pkg.go.dev/flag#CommandLine), meaning
 you get the same help-message output and error handling. `Enflag` uses
 generics to provide a cleaner and more convenient interface.
 
-[See the extended runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
+[See the full runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
 
 ```go
 type MyServiceConf struct {
-    DBHost  string
-    DBPort  int
     BaseURL *url.URL
+    DBHost  string
+    Dates  []time.Time
 }
 
 func main() {
     var conf MyServiceConf
 
-    enflag.Bind(&conf.DBHost, "DB_HOST", "db-host", "127.0.0.1", "db hostname")
-    enflag.Bind(&conf.DBPort, "DB_PORT", "db-port", 5432, "db port")
-    enflag.Bind(&conf.BaseURL, "BASE_URL", "base-url", nil, "website base url")
+    // Basic usage
+    enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
+
+    // Simple bindings can be defined using the less verbose BindVar shortcut
+    enflag.BindVar(&conf.BaseURL, "BASE_URL", "base-url")
+
+    // Add settings
+    enflag.Var(&conf.DBHost).
+        WithDefault("127.0.0.1").
+        WithFlagUsage("db hostname").
+        Bind("DB_HOST", "db-host")
+
+    // Slice
+    enflag.Var(&conf.Dates).
+        WithSliceSeparator("|").       // Split the slice using a non-default separator
+        WithTimeLayout(time.DateOnly). // Use a non-default time layout
+        BindEnv("DATES")               // Bind only the env variable, ignore the flag
 
     enflag.Parse()
 }
 ```
 
-`Bind` supports the most essential datatypes out of the box like strings,
-numbers, duration, URLs, and IP. You can also use `BindFunc` with a custom
-parser to work with other types:
+Enflag supports the most essential data types out of the box like binary, strings,
+numbers, time, URLs, IP and corresponding slices.
+You can also use `VarFunc` with a custom parser to work with other types:
 
-[See the extended runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
+[See the full runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
 
 ```go
 func main() {
-    var timeVar *time.Time
+    var customVar int64
 
-   enflag.BindFunc(
-        &timeVar,
-        "ITIME",
-        "itime",
-        nil,
-        "important time in unix-milli format",
-        func(ts string) (*time.Time, error) {
-            ms, err := strconv.ParseInt(ts, 10, 64)
-            if err != nil {
-                return nil, err
-            }
+    parser := func(s string) (int64, error) {
+        res, err := strconv.ParseInt(s, 10, 64)
+        if err != nil {
+            return 0, err
+        }
 
-            t := time.UnixMilli(ms)
-            return &t, nil
-        },
-    )
+        return res * 10, nil
+    }
+    enflag.VarFunc(&customVar, parser).Bind("CUSTOM", "custom")
 
     enflag.Parse()
 }

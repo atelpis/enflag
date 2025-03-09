@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/atelpis/enflag"
 )
@@ -16,47 +15,47 @@ func Example() {
 	{
 		os.Setenv("ENV", "develop")
 		os.Setenv("DB_HOST", "localhost")
+		os.Setenv("SECRET", "AQID")
 	}
 
 	var conf MyServiceConf
 
 	// Both env and flag are defined and provided,
 	// flag value will be used as it has higher priority.
-	enflag.Bind(&conf.DBHost, "DB_HOST", "db-host", "127.0.0.1", "db hostname")
+	enflag.Var(&conf.DBHost).WithDefault("127.0.0.1").WithFlagUsage("db hostname").Bind("DB_HOST", "db-host")
 
 	// Both env and flag are defined, but neither is provided.
 	// The value of DBPort will default to 5432.
-	enflag.Bind(&conf.DBPort, "DB_PORT", "db-port", 5432, "db port")
+	enflag.Var(&conf.DBPort).WithDefault(5432).Bind("DB_PORT", "db-port")
 
 	// Example of parsing a non-primitive type.
-	enflag.Bind(&conf.BaseURL, "BASE_URL", "base-url", nil, "website base url")
+	enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
 
 	// Both env and flag sources are optional. Skip the flag definition,
 	// and retrieve this value only from the environment.
-	enflag.Bind(&conf.Env, "ENV", "", "local", "")
+	enflag.Var(&conf.Env).BindEnv("ENV")
 
-	// Custom time parser
-	enflag.BindFunc(
-		&conf.ImportantTime,
-		"ITIME",
-		"itime",
-		nil,
-		"important time in unix-milli format",
-		func(ts string) (*time.Time, error) {
-			ms, err := strconv.ParseInt(ts, 10, 64)
+	// By default binary variables as parsed as base64 string.
+	enflag.Var(&conf.Secret).Bind("SECRET", "secret")
+
+	// Custom parser
+	{
+		parser := func(s string) (int64, error) {
+			res, err := strconv.ParseInt(s, 10, 64)
 			if err != nil {
-				return nil, err
+				return 0, err
 			}
 
-			t := time.UnixMilli(ms)
-			return &t, nil
-		},
-	)
+			return res * 10, nil
+		}
+		enflag.VarFunc(&conf.CustomVar, parser).Bind("CUSTOM", "custom")
+	}
 
 	// emulate flag values
 	{
 		flag.CommandLine.Set("db-host", "db.mysrv.int")
 		flag.CommandLine.Set("base-url", "https://my-website.com")
+		flag.CommandLine.Set("custom", "3")
 	}
 
 	enflag.Parse()
@@ -71,6 +70,8 @@ func RunMyService(c *MyServiceConf) error {
 	fmt.Printf("- DB Host: %s\n", c.DBHost)
 	fmt.Printf("- DB Port: %d\n", c.DBPort)
 	fmt.Printf("- Base URL: %v\n", c.BaseURL)
+	fmt.Printf("- Custom var: %v\n", c.CustomVar)
+	fmt.Printf("- Secret len: %d\n", len(c.Secret))
 
 	return nil
 }
@@ -81,6 +82,7 @@ type MyServiceConf struct {
 	DBHost  string
 	DBPort  int
 	BaseURL *url.URL
+	Secret  []byte
 
-	ImportantTime *time.Time
+	CustomVar int64
 }
