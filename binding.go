@@ -335,6 +335,37 @@ func (b *CustomBinding[T]) BindFlag(name string) {
 	b.Bind("", name)
 }
 
+// BindVar is a shorthand for Var(p).WithFlagUsage(flagUsage).Bind(envName, flagName),
+// allowing the definition of a simple variable without verbose chaining.
+// Only the first element of flagUsage will be used if provided.
+//
+// For more complex cases, refer to the Var() function.
+func BindVar[T builtin](p *T, envName string, flagName string, flagUsage ...string) {
+	v := Var(p)
+	if len(flagUsage) > 0 {
+		v = v.WithFlagUsage(flagUsage[0])
+	}
+
+	v.Bind(envName, flagName)
+}
+
+// Deprecated: use Var or BindVar functions instead.
+func Bind[T builtin](p *T, envName string, flagName string, value T, flagUsage string) {
+	Var(p).WithDefault(value).WithFlagUsage(flagUsage).Bind(envName, flagName)
+}
+
+// Deprecated: use VarFunc function instead.
+func BindFunc[T any](
+	p *T,
+	envName string,
+	flagName string,
+	value T,
+	flagUsage string,
+	parser func(s string) (T, error),
+) {
+	VarFunc(p, parser).WithDefault(value).WithFlagUsage(flagUsage).Bind(envName, flagName)
+}
+
 // Parse calls the standard library's `flag` package's `Parse()` function.
 // Like the standard library's `flag` package, Parse() must be called
 // after all flags have been defined.

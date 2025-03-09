@@ -37,7 +37,7 @@ Behind the scenes, flags are handled by the standard library's
 you get the same help-message output and error handling. `Enflag` uses
 generics to provide a cleaner and more convenient interface.
 
-[See the extended runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
+[See the full runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
 
 ```go
 type MyServiceConf struct {
@@ -51,6 +51,9 @@ func main() {
 
     // Basic usage
     enflag.Var(&conf.BaseURL).Bind("BASE_URL", "base-url")
+
+    // Simple bindings can be defined using the less verbose BindVar shortcut
+    enflag.BindVar(&conf.BaseURL, "BASE_URL", "base-url")
 
     // Add settings
     enflag.Var(&conf.DBHost).
@@ -72,7 +75,7 @@ Enflag supports the most essential data types out of the box like binary, string
 numbers, time, URLs, IP and corresponding slices.
 You can also use `VarFunc` with a custom parser to work with other types:
 
-[See the extended runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
+[See the full runnable example](https://pkg.go.dev/github.com/atelpis/enflag#example-package)
 
 ```go
 func main() {

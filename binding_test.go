@@ -58,6 +58,17 @@ func TestBind(t *testing.T) {
 			},
 		},
 		{
+			name:  "BindVar",
+			envs:  []string{"PORT", "443"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target int
+				BindVar(&target, "PORT", "port", "port helper")
+
+				return toSlice(func() { checkVal(t, int(443), target) })
+			},
+		},
+		{
 			name: "String slice",
 			envs: []string{"LABELS", "inbox,sent"},
 			f: func(t *testing.T) []func() {
@@ -517,6 +528,30 @@ func TestBind(t *testing.T) {
 				VarFunc(&target, parser).WithDefault(10).Bind("MY_FORMAT", "my-format")
 
 				return toSlice(func() { checkVal(t, 0, target) })
+			},
+		},
+		{
+			name:  "Deprecated Bind",
+			envs:  []string{"PORT", "8080"},
+			flags: []string{"port", "443"},
+			f: func(t *testing.T) []func() {
+				var target int
+				Bind(&target, "PORT", "port", 80, "int value")
+
+				return toSlice(func() { checkVal(t, int(443), target) })
+			},
+		},
+		{
+			name:  "Deprecated BindFunc",
+			envs:  []string{"MY_FORMAT", "aaa"},
+			flags: nil,
+			f: func(t *testing.T) []func() {
+				var target string
+				BindFunc(&target, "MY_FORMAT", "my-format", "a", "int value", func(s string) (string, error) {
+					return s + "-bbb", nil
+				})
+
+				return toSlice(func() { checkVal(t, "aaa-bbb", target) })
 			},
 		},
 	}
