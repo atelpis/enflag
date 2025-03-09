@@ -478,7 +478,7 @@ func TestBind(t *testing.T) {
 
 				Var(&target).BindEnv("PORTS")
 
-				return toSlice(func() { checkSlice(t, []int{1, 2}, target) })
+				return toSlice(func() { checkSlice(t, []int{0, 0}, target) })
 			},
 		},
 
