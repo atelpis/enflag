@@ -16,7 +16,7 @@ the program to exit with status code 2.
 
 	var ts time.Time
 	Var(&ts).
-	    WithFlagUsage("").
+	    WithFlagUsage("start time in yyyy-mm-dd format").
 	    WithTimeLayout(time.DateOnly).
 	    Bind("START_TIME", "start-time")
 
