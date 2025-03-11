@@ -18,14 +18,10 @@ address a specific gap. Most options fall into two extremes:
   to hidden runtime errors, require memorizing library-specific syntax, and
   make debugging more difficult.
 
-**Type safety through generics**: `Enflag` uses Go's generics to provide true
-compile-time type checking.
-
-**Balanced functionality:** `Enflag` embraces the simplicity of environment
-variables and command-line flags,
-covering the vast majority of use cases without bloated features. Its clean,
-explicit API makes configuration predictable, readable, and easy to manage in
-containerized environments.
+**Type-safe and balanced:** `Enflag` uses Go's generics for compile-time type
+safety, avoiding runtime errors. By focusing on environment variables and
+command-line flags, it covers the majority of use cases with a clean,
+straightforward API, making configuration predictable and easy to manage.
 
 ## Features
 
