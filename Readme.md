@@ -1,29 +1,27 @@
 # Enflag [![Go Reference](https://pkg.go.dev/badge/github.com/atelpis/enflag.svg)](https://pkg.go.dev/github.com/atelpis/enflag) [![Go Report Card](https://goreportcard.com/badge/github.com/atelpis/enflag)](https://goreportcard.com/report/github.com/atelpis/enflag) [![codecov](https://codecov.io/gh/atelpis/enflag/graph/badge.svg?token=MH84VQP6EG)](https://codecov.io/gh/atelpis/enflag)
 
-`Enflag` is a zero-dependency Golang package that simplifies configuring
+`Enflag` is a zero-dependency, generics-based Golang package for configuring
 applications via environment variables and command-line flags.
 
 ```bash
 go get -u github.com/atelpis/enflag
 ```
 
-## Why enflag?
+## Why Enflag?
 
-The Go ecosystem has many configuration libraries, yet Enflag was created to
-address a specific gap. Most Go configuration libraries fall into two extremes:
+While many solutions are available for Go configuration, `Enflag` was created to
+address a specific gap. Most options fall into two extremes:
 
-- Single-source libraries limit flexibility by supporting only env vars,
-  flags, or config files.
-- All-in-one solutions rely on reflection and struct tags, which can lead to
-  hidden runtime errors, require memorizing library-specific syntax, and make
-  debugging harder. A small typo in a struct tag or an unrecognized field may
-  silently result in a zero value, often requiring extra attention to ensure
-  correctness.
+- Single-source tools limit flexibility by supporting only environment
+  variables, flags, or a specific file type.
+- All-in-one solutions rely on reflection and struct tags, which can lead
+  to hidden runtime errors, require memorizing library-specific syntax, and
+  make debugging more difficult.
 
-**Type safety through generics**: Enflag uses Go's generics to provide true
+**Type safety through generics**: `Enflag` uses Go's generics to provide true
 compile-time type checking.
 
-**Balanced functionality:** Enflag embraces the simplicity of environment
+**Balanced functionality:** `Enflag` embraces the simplicity of environment
 variables and command-line flags,
 covering the vast majority of use cases without bloated features. Its clean,
 explicit API makes configuration predictable, readable, and easy to manage in
@@ -32,7 +30,7 @@ containerized environments.
 ## Features
 
 - **Type-safe**: Generics-based implementation, no reflection
-- **Docker-optimized**: Unified API for both environment variables and cmd flags
+- **Container-optimized**: Unified API for both environment variables and cmd flags
 - **Comprehensive support**: Built-in parsing for all widely used types
 - **Flexible**: Supports configurable slices, binary decoders,
   and JSON values
@@ -88,7 +86,7 @@ func main() {
 }
 ```
 
-Enflag supports the most essential data types out of the box like binary, strings,
+`Enflag` supports the most essential data types out of the box like binary, strings,
 numbers, time, URLs, IP and corresponding slices.
 You can also use `VarFunc` with a custom parser to work with other types:
 
