@@ -7,21 +7,38 @@ applications via environment variables and command-line flags.
 go get -u github.com/atelpis/enflag
 ```
 
-Go provides a fantastic [flag package](https://pkg.go.dev/flag),
-which does a great job of working with the command line. However, the common
-practice for cloud-oriented applications is to support both flags and
-corresponding environment variables. `Enflag` addresses this by defining
-both configuration sources in a single function call.
+## Why enflag?
+
+The Go ecosystem has many configuration libraries, yet Enflag was created to
+address a specific gap. Most Go configuration libraries fall into two extremes:
+
+- Single-source libraries limit flexibility by supporting only env vars,
+  flags, or config files.
+- All-in-one solutions rely on reflection and struct tags, which can lead to
+  hidden runtime errors, require memorizing library-specific syntax, and make
+  debugging harder. A small typo in a struct tag or an unrecognized field may
+  silently result in a zero value, often requiring extra attention to ensure
+  correctness.
+
+**Type safety through generics**: Enflag uses Go's generics to provide true
+compile-time type checking.
+
+**Balanced functionality:** Enflag embraces the simplicity of environment
+variables and command-line flags,
+covering the vast majority of use cases without bloated features. Its clean,
+explicit API makes configuration predictable, readable, and easy to manage in
+containerized environments.
 
 ## Features
 
-- Generics-based implementation, ensuring type safety
-- Unified API for both environment variables and command-line flags
-- Built-in parsing for all widely used types
-- Supports JSON, binary, and slices
-- Easily extendable with custom parsers
-- Minimalistic API
-- No external dependencies
+- **Type-safe**: Generics-based implementation, no reflection
+- **Docker-optimized**: Unified API for both environment variables and cmd flags
+- **Comprehensive support**: Built-in parsing for all widely used types
+- **Flexible**: Supports configurable slices, binary decoders,
+  and JSON values
+- **Extensible**: Easily add custom parsers
+- **Minimalistic**: Clean, straightforward API
+- **Lightweight**: Zero external dependencies
 
 ## Usage
 
