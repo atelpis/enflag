@@ -12,7 +12,7 @@ import (
 )
 
 func TestBind(t *testing.T) {
-	isTestEnv = true
+	ErrorHandlerFunc = OnErrorIgnore
 
 	type tc struct {
 		name string
@@ -464,7 +464,7 @@ func TestBind(t *testing.T) {
 
 				Var(&target).WithDefault(80).Bind("PORT", "port")
 
-				return toSlice(func() { checkVal(t, uint(0), target) })
+				return toSlice(func() { checkVal(t, uint(80), target) })
 			},
 		},
 		{
@@ -489,7 +489,7 @@ func TestBind(t *testing.T) {
 
 				Var(&target).BindEnv("PORTS")
 
-				return toSlice(func() { checkSlice(t, []int{0, 0}, target) })
+				return toSlice(func() { checkSlice(t, []int{}, target) })
 			},
 		},
 		{
@@ -527,7 +527,7 @@ func TestBind(t *testing.T) {
 				}
 				VarFunc(&target, parser).WithDefault(10).Bind("MY_FORMAT", "my-format")
 
-				return toSlice(func() { checkVal(t, 0, target) })
+				return toSlice(func() { checkVal(t, 10, target) })
 			},
 		},
 		{

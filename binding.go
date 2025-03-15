@@ -387,8 +387,9 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 		v, err := parser(envVal)
 		if err != nil {
 			handleError(ptr, envVal, b.envName, "")
+		} else {
+			*ptr = v
 		}
-		*ptr = v
 	}
 
 	if b.flagName != "" {
@@ -396,6 +397,7 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 			parsed, err := parser(s)
 			if err != nil {
 				handleError(ptr, s, "", b.flagName)
+				return nil
 			}
 
 			*ptr = parsed
@@ -410,7 +412,9 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 			parsed, err := parser(v)
 			if err != nil {
 				handleError(ptr, envVal, b.envName, "")
+				continue
 			}
+
 			*ptr = append(*ptr, parsed)
 		}
 	}
@@ -421,6 +425,7 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 				parsed, err := parser(v)
 				if err != nil {
 					handleError(ptr, s, "", b.flagName)
+					continue
 				}
 
 				*ptr = append(*ptr, parsed)
