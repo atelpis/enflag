@@ -31,7 +31,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -387,17 +386,7 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 	if envVal := os.Getenv(b.envName); envVal != "" {
 		v, err := parser(envVal)
 		if err != nil {
-			fmt.Fprintf(
-				flag.CommandLine.Output(),
-				"Unable to parse env-variable %s as type %T\n",
-				b.envName,
-				*ptr,
-			)
-
-			// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
-			if !isTestEnv {
-				os.Exit(2)
-			}
+			handleError(ptr, envVal, b.envName, "")
 		}
 		*ptr = v
 	}
@@ -406,7 +395,7 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 		flag.Func(b.flagName, b.flagUsage, func(s string) error {
 			parsed, err := parser(s)
 			if err != nil {
-				return err
+				handleError(ptr, s, "", b.flagName)
 			}
 
 			*ptr = parsed
@@ -420,17 +409,7 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		for _, v := range strings.Split(envVal, b.sliceSep) {
 			parsed, err := parser(v)
 			if err != nil {
-				fmt.Fprintf(
-					flag.CommandLine.Output(),
-					"Unable to parse env-variable %s as type %T\n",
-					b.envName,
-					*ptr,
-				)
-
-				// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
-				if !isTestEnv {
-					os.Exit(2)
-				}
+				handleError(ptr, envVal, b.envName, "")
 			}
 			*ptr = append(*ptr, parsed)
 		}
@@ -441,7 +420,7 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 			for _, v := range strings.Split(s, b.sliceSep) {
 				parsed, err := parser(v)
 				if err != nil {
-					return err
+					handleError(ptr, s, "", b.flagName)
 				}
 
 				*ptr = append(*ptr, parsed)
