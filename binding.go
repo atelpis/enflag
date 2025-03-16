@@ -7,7 +7,7 @@ flag > environment variable > default value. Both environment variables and flag
 
 Flag parsing is handled by the standard library's flag package via the CommandLine flag set.
 Like the flag package, errors encountered during environment variable parsing will cause
-the program to exit with status code 2.
+the program to exit with status code 2 by default, but the error handler can be predefined.
 
 # Example usage:
 
