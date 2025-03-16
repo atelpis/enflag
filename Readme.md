@@ -25,14 +25,13 @@ straightforward API, making configuration predictable and easy to manage.
 
 ## Features
 
-- **Type-safe**: Generics-based implementation, no reflection
-- **Container-optimized**: Unified API for both environment variables and cmd flags
-- **Comprehensive support**: Built-in parsing for all widely used types
-- **Flexible**: Supports configurable slices, binary decoders,
-  and JSON values
-- **Extensible**: Easily add custom parsers
-- **Minimalistic**: Clean, straightforward API
-- **Lightweight**: Zero external dependencies
+- **Type-safe** – Generics-based design, no runtime reflection
+- **Container-optimized** – Unified API for env vars and CLI flags
+- **Flexible** – Handles primitives, slices, JSON, and binary formats
+- **Extensible** – Custom parsers can be added easily
+- **Error handling** – Built-in handlers with custom callback support
+- **Secure & lightweight** – No external dependencies, suitable for security-sensitive
+  applications
 
 ## Usage
 
