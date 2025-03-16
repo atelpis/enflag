@@ -60,8 +60,8 @@ var SliceSeparator = ","
 // TimeLayout is the default layout for parsing time.
 var TimeLayout = time.RFC3339
 
-// StringDecodeFunc is the default string-to-[]byte decoder.
-var StringDecodeFunc = base64.StdEncoding.DecodeString
+// DecodeStringFunc is the default string-to-[]byte decoder.
+var DecodeStringFunc = base64.StdEncoding.DecodeString
 
 // Binding holds a pointer to a specified variable along with settings
 // for parsing environment variables and command-line flags into it.
@@ -106,7 +106,7 @@ func Var[T builtin](p *T) *Binding[T] {
 	}
 	b.sliceSep = SliceSeparator
 	b.timeLayout = TimeLayout
-	b.decoder = StringDecodeFunc
+	b.decoder = DecodeStringFunc
 
 	return b
 }
@@ -133,12 +133,12 @@ func (b *Binding[T]) WithSliceSeparator(sep string) *Binding[T] {
 	return b
 }
 
-// WithStringDecodeFunc sets a function for decoding a string into []byte.
+// WithDecodeStringFunc sets a function for decoding a string into []byte.
 // This is only applicable to []byte variables.
 //
-// If not explicitly set, the global variable StringDecodeFunc() will be used.
+// If not explicitly set, the global variable DecodeStringFunc() will be used.
 // The default decoder is base64.StdEncoding.DecodeString.
-func (b *Binding[T]) WithStringDecodeFunc(f func(string) ([]byte, error)) *Binding[T] {
+func (b *Binding[T]) WithDecodeStringFunc(f func(string) ([]byte, error)) *Binding[T] {
 	b.decoder = f
 	return b
 }
