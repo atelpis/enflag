@@ -13,6 +13,7 @@ import (
 
 func TestBind(t *testing.T) {
 	ErrorHandlerFunc = OnErrorIgnore
+	ErrorHandlerFunc = OnErrorLogAndContinue
 
 	type tc struct {
 		name string
