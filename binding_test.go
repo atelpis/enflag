@@ -12,7 +12,7 @@ import (
 )
 
 func TestBind(t *testing.T) {
-	isTestEnv = true
+	ErrorHandlerFunc = OnErrorLogAndContinue
 
 	type tc struct {
 		name string
@@ -464,7 +464,7 @@ func TestBind(t *testing.T) {
 
 				Var(&target).WithDefault(80).Bind("PORT", "port")
 
-				return toSlice(func() { checkVal(t, uint(0), target) })
+				return toSlice(func() { checkVal(t, uint(80), target) })
 			},
 		},
 		{
@@ -489,7 +489,7 @@ func TestBind(t *testing.T) {
 
 				Var(&target).BindEnv("PORTS")
 
-				return toSlice(func() { checkSlice(t, []int{0, 0}, target) })
+				return toSlice(func() { checkSlice(t, []int{}, target) })
 			},
 		},
 		{
@@ -527,7 +527,7 @@ func TestBind(t *testing.T) {
 				}
 				VarFunc(&target, parser).WithDefault(10).Bind("MY_FORMAT", "my-format")
 
-				return toSlice(func() { checkVal(t, 0, target) })
+				return toSlice(func() { checkVal(t, 10, target) })
 			},
 		},
 		{
@@ -575,6 +575,41 @@ func TestBind(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestErrroHandling(t *testing.T) {
+	t.Run("Err ignore", func(t *testing.T) {
+		ErrorHandlerFunc = OnErrorIgnore
+
+		reset()
+		var target int
+
+		os.Setenv("ENV_ERR", "one")
+		BindVar(&target, "ENV_ERR", "")
+		Parse()
+	})
+
+	t.Run("Err exit", func(t *testing.T) {
+		var exitStatus int
+
+		oldFunc := osExitFunc
+		osExitFunc = func(code int) {
+			exitStatus = code
+		}
+		defer func() { osExitFunc = oldFunc }()
+
+		ErrorHandlerFunc = OnErrorExit
+
+		reset()
+		var target int
+
+		os.Setenv("ENV_ERR", "one")
+		BindVar(&target, "ENV_ERR", "")
+		Parse()
+
+		checkVal(t, 2, exitStatus)
+	})
+
 }
 
 func checkVal[A comparable](t *testing.T, want A, got A) {

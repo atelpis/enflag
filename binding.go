@@ -7,7 +7,7 @@ flag > environment variable > default value. Both environment variables and flag
 
 Flag parsing is handled by the standard library's flag package via the CommandLine flag set.
 Like the flag package, errors encountered during environment variable parsing will cause
-the program to exit with status code 2.
+the program to exit with status code 2 by default, but the error handler can be predefined.
 
 # Example usage:
 
@@ -31,7 +31,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -387,26 +386,18 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 	if envVal := os.Getenv(b.envName); envVal != "" {
 		v, err := parser(envVal)
 		if err != nil {
-			fmt.Fprintf(
-				flag.CommandLine.Output(),
-				"Unable to parse env-variable %s as type %T\n",
-				b.envName,
-				*ptr,
-			)
-
-			// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
-			if !isTestEnv {
-				os.Exit(2)
-			}
+			handleError(err, ptr, envVal, b.envName, "")
+		} else {
+			*ptr = v
 		}
-		*ptr = v
 	}
 
 	if b.flagName != "" {
 		flag.Func(b.flagName, b.flagUsage, func(s string) error {
 			parsed, err := parser(s)
 			if err != nil {
-				return err
+				handleError(err, ptr, s, "", b.flagName)
+				return nil
 			}
 
 			*ptr = parsed
@@ -420,18 +411,10 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		for _, v := range strings.Split(envVal, b.sliceSep) {
 			parsed, err := parser(v)
 			if err != nil {
-				fmt.Fprintf(
-					flag.CommandLine.Output(),
-					"Unable to parse env-variable %s as type %T\n",
-					b.envName,
-					*ptr,
-				)
-
-				// os.Exit(2) replicates the default error handling behavior of flag.CommandLine
-				if !isTestEnv {
-					os.Exit(2)
-				}
+				handleError(err, ptr, envVal, b.envName, "")
+				continue
 			}
+
 			*ptr = append(*ptr, parsed)
 		}
 	}
@@ -441,7 +424,8 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 			for _, v := range strings.Split(s, b.sliceSep) {
 				parsed, err := parser(v)
 				if err != nil {
-					return err
+					handleError(err, ptr, s, "", b.flagName)
+					continue
 				}
 
 				*ptr = append(*ptr, parsed)
@@ -451,5 +435,3 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		})
 	}
 }
-
-var isTestEnv bool
