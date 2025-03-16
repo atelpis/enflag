@@ -12,7 +12,6 @@ import (
 )
 
 func TestBind(t *testing.T) {
-	ErrorHandlerFunc = OnErrorIgnore
 	ErrorHandlerFunc = OnErrorLogAndContinue
 
 	type tc struct {
@@ -576,6 +575,41 @@ func TestBind(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestErrroHandling(t *testing.T) {
+	t.Run("Err ignore", func(t *testing.T) {
+		ErrorHandlerFunc = OnErrorIgnore
+
+		reset()
+		var target int
+
+		os.Setenv("ENV_ERR", "one")
+		BindVar(&target, "ENV_ERR", "")
+		Parse()
+	})
+
+	t.Run("Err exit", func(t *testing.T) {
+		var exitStatus int
+
+		oldFunc := osExitFunc
+		osExitFunc = func(code int) {
+			exitStatus = code
+		}
+		defer func() { osExitFunc = oldFunc }()
+
+		ErrorHandlerFunc = OnErrorExit
+
+		reset()
+		var target int
+
+		os.Setenv("ENV_ERR", "one")
+		BindVar(&target, "ENV_ERR", "")
+		Parse()
+
+		checkVal(t, 2, exitStatus)
+	})
+
 }
 
 func checkVal[A comparable](t *testing.T, want A, got A) {

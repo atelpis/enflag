@@ -14,7 +14,7 @@ var ErrorHandlerFunc = OnErrorExit
 // OnErrorExit prints the error and exits with status code 2.
 var OnErrorExit = func(err error, rawVal string, target any, envName string, flagName string) {
 	OnErrorLogAndContinue(err, rawVal, target, envName, flagName)
-	os.Exit(2)
+	osExitFunc(2)
 }
 
 // OnErrorIgnore silently ignores the error.
@@ -39,3 +39,5 @@ var OnErrorLogAndContinue = func(err error, rawVal string, target any, envName s
 func handleError[T any](err error, target *T, rawVal, envName string, flagName string) {
 	ErrorHandlerFunc(err, rawVal, *target, envName, flagName)
 }
+
+var osExitFunc = os.Exit
