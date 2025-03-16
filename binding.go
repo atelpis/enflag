@@ -386,7 +386,7 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 	if envVal := os.Getenv(b.envName); envVal != "" {
 		v, err := parser(envVal)
 		if err != nil {
-			handleError(ptr, envVal, b.envName, "")
+			handleError(err, ptr, envVal, b.envName, "")
 		} else {
 			*ptr = v
 		}
@@ -396,7 +396,7 @@ func handleVar[T any](b binding, ptr *T, parser func(string) (T, error)) {
 		flag.Func(b.flagName, b.flagUsage, func(s string) error {
 			parsed, err := parser(s)
 			if err != nil {
-				handleError(ptr, s, "", b.flagName)
+				handleError(err, ptr, s, "", b.flagName)
 				return nil
 			}
 
@@ -411,7 +411,7 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		for _, v := range strings.Split(envVal, b.sliceSep) {
 			parsed, err := parser(v)
 			if err != nil {
-				handleError(ptr, envVal, b.envName, "")
+				handleError(err, ptr, envVal, b.envName, "")
 				continue
 			}
 
@@ -424,7 +424,7 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 			for _, v := range strings.Split(s, b.sliceSep) {
 				parsed, err := parser(v)
 				if err != nil {
-					handleError(ptr, s, "", b.flagName)
+					handleError(err, ptr, s, "", b.flagName)
 					continue
 				}
 
@@ -435,5 +435,3 @@ func handleSlice[T any](b binding, ptr *[]T, parser func(string) (T, error)) {
 		})
 	}
 }
-
-var isTestEnv bool

@@ -6,32 +6,36 @@ import (
 	"os"
 )
 
+// ErrorHandlerFunc is a function called after a value parser returns an error.
+// See predefined options: OnErrorExit, OnErrorIgnore, and OnErrorLogAndContinue.
+// It can also be replaced with a custom handler.
 var ErrorHandlerFunc = OnErrorExit
 
-var OnErrorExit = func(rawVal string, target any, envName string, flagName string) {
-	OnErrorContinue(rawVal, target, envName, flagName)
+// OnErrorExit prints the error and exits with status code 2.
+var OnErrorExit = func(err error, rawVal string, target any, envName string, flagName string) {
+	OnErrorLogAndContinue(err, rawVal, target, envName, flagName)
 	os.Exit(2)
 }
 
-var OnErrorIgnore = func(rawVal string, target any, envName string, flagName string) {}
+// OnErrorIgnore silently ignores the error.
+// If a default value is specified, it will be used.
+var OnErrorIgnore = func(err error, rawVal string, target any, envName string, flagName string) {}
 
-var OnErrorContinue = func(rawVal string, target any, envName string, flagName string) {
-	flag.CommandLine.Output().Write([]byte(errorMessage(rawVal, target, envName, flagName)))
-}
+// OnErrorLogAndContinue prints the error message but continues execution.
+// If a default value is specified, it will be used.
+var OnErrorLogAndContinue = func(err error, rawVal string, target any, envName string, flagName string) {
+	_, _ = err, rawVal
 
-// only one of envName or flagName should be set
-func errorMessage(rawVal string, target any, envName string, flagName string) string {
+	var msg string
 	if envName != "" {
-		return fmt.Sprintf("unable to parse env-variable %s as type %T\n", envName, target)
+		msg = fmt.Sprintf("unable to parse env-variable %q as type %T\n", envName, target)
+	} else if flagName != "" {
+		msg = fmt.Sprintf("unable to parse flag %q as type %T\n", flagName, target)
 	}
 
-	if flagName != "" {
-		return fmt.Sprintf("unable to parse flag %s as type %T\n", flagName, target)
-	}
-
-	return ""
+	flag.CommandLine.Output().Write([]byte(msg))
 }
 
-func handleError[T any](ptr *T, rawVal, envName string, flagName string) {
-	ErrorHandlerFunc(rawVal, *ptr, envName, flagName)
+func handleError[T any](err error, target *T, rawVal, envName string, flagName string) {
+	ErrorHandlerFunc(err, rawVal, *target, envName, flagName)
 }
